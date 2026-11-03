@@ -93,7 +93,7 @@ export const StudentsPage: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
           {/* Search Input */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-6 relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             <input
               type="text"

@@ -198,7 +198,7 @@ function drawReceiptSeal(
   const bottomText = branchName.toUpperCase();
   doc.font('Times-Bold').fontSize(5.4).fillColor(color);
   const rBottom = (rMid + rInner) / 2;
-  const letterSpacingBottom = 1.4;
+  const letterSpacingBottom = 1.3;
   let totalAngleBottom = 0;
   for (const ch of bottomText) {
     totalAngleBottom += (doc.widthOfString(ch) + letterSpacingBottom) / rBottom;
@@ -210,12 +210,12 @@ function drawReceiptSeal(
     const midAngle = currentAngleBottom - span / 2;
     const chX = rBottom * Math.cos(midAngle);
     const chY = rBottom * Math.sin(midAngle);
-    const rot = Math.PI / 2 - midAngle;
+    const rot = midAngle - Math.PI / 2;
 
     doc.save();
     doc.translate(chX, chY);
     doc.rotate(rot * (180 / Math.PI));
-    doc.text(ch, -chW / 2, -2.4, { lineBreak: false });
+    doc.text(ch, -chW / 2, -2.2, { lineBreak: false });
     doc.restore();
 
     currentAngleBottom -= span;

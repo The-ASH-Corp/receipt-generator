@@ -19,6 +19,7 @@ import { RecordPaymentModal } from '../components/RecordPaymentModal';
 import { ReceiptPreviewModal } from '../components/ReceiptPreviewModal';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import Select from '../components/Select';
 
 export const StudentsPage: React.FC = () => {
   const { settings } = useAuth();
@@ -100,38 +101,37 @@ export const StudentsPage: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or phone..."
-              className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none"
             />
           </div>
 
           {/* Course Filter */}
           <div className="lg:col-span-3">
-            <select
+            <Select
               value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            >
-              <option value="All">All Courses</option>
-              {courses.map((course) => (
-                <option key={course} value={course}>
-                  {course}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedCourse}
+              options={[
+                { label: "All Courses", value: "All" },
+                ...courses.map((course) => ({
+                  label: course,
+                  value: course,
+                })),
+              ]}
+            />
           </div>
 
           {/* Payment Status Filter */}
           <div className="lg:col-span-3">
-            <select
+            <Select
               value={selectedPaymentStatus}
-              onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            >
-              <option value="All">All Fee States</option>
-              <option value="Paid">Paid</option>
-              <option value="Partially Paid">Partially Paid</option>
-              <option value="Pending">Pending</option>
-            </select>
+              onChange={setSelectedPaymentStatus}
+              options={[
+                { label: "All Fee States", value: "All" },
+                { label: "Paid", value: "Paid" },
+                { label: "Partially Paid", value: "Partially Paid" },
+                { label: "Pending", value: "Pending" },
+              ]}
+            />
           </div>
         </div>
       </div>
@@ -221,14 +221,6 @@ export const StudentsPage: React.FC = () => {
                           <Eye className="w-3.5 h-3.5" />
                           <span>View</span>
                         </Link>
-                        <button
-                          onClick={() => setPaymentStudent(student)}
-                          title="Record Fee Payment"
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-semibold transition-colors"
-                        >
-                          <CreditCard className="w-3.5 h-3.5" />
-                          <span>Pay</span>
-                        </button>
                         <button
                           onClick={() => {
                             setEditingStudent(student);

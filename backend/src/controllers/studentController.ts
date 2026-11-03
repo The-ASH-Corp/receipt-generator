@@ -164,7 +164,7 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
 
     res.status(201).json({
       success: true,
-      message: `Student ${student.fullName} registered successfully.`,
+      message: `Student ${student.fullName} added successfully.`,
       data: student,
     });
   } catch (err) {

@@ -5,6 +5,7 @@ import { studentApi, courseApi, StudentPayload } from '../services/api';
 import { toInputDate } from '../utils/formatters';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../hooks/useAuth';
+import Select from './Select';
 
 interface StudentModalProps {
   isOpen: boolean;
@@ -137,25 +138,40 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       return;
     }
 
+    // const numericFee = Number(totalCourseFee);
+    // if (isNaN(numericFee) || numericFee <= 0) {
+    //   setError('Total Course Fee must be greater than 0.');
+    //   return;
+    // }
+
+    // const numericReceived = Number(receivedAmount) || 0;
+    // if (numericReceived < 0) {
+    //   setError('Received Amount cannot be negative.');
+    //   return;
+    // }
+    // if (numericReceived > numericFee) {
+    //   setError('Received Amount cannot exceed Total Course Fee.');
+    //   return;
+    // }
     const numericFee = Number(totalCourseFee);
-    if (isNaN(numericFee) || numericFee <= 0) {
-      setError('Total Course Fee must be greater than 0.');
-      return;
-    }
-
     const numericReceived = Number(receivedAmount) || 0;
-    if (numericReceived < 0) {
-      setError('Received Amount cannot be negative.');
-      return;
-    }
-    if (numericReceived > numericFee) {
-      setError('Received Amount cannot exceed Total Course Fee.');
-      return;
-    }
-
-    if (numericReceived > 0 && paymentMethods.length === 0) {
-      setError('Please select at least one Payment Method (Cash or Bank).');
-      return;
+    if (!isEdit) {
+      if (isNaN(numericFee) || numericFee <= 0) {
+        setError('Total Course Fee must be greater than 0.');
+        return;
+      }
+      if (numericReceived < 0) {
+        setError('Received Amount cannot be negative.');
+        return;
+      }
+      if (numericReceived > numericFee) {
+        setError('Received Amount cannot exceed Total Course Fee.');
+        return;
+      }
+      if (numericReceived > 0 && paymentMethods.length === 0) {
+        setError('Please select at least one Payment Method (Cash or Bank).');
+        return;
+      }
     }
 
     const payload: StudentPayload = {
@@ -166,8 +182,15 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       classMode,
       branch,
       paymentMethod: paymentMethods.join(', '),
-      receivedAmount: numericReceived,
-      totalCourseFee: numericFee,
+      // receivedAmount: numericReceived,
+      // totalCourseFee: numericFee,
+      receivedAmount: isEdit
+        ? initialStudent?.totalAmountPaid || 0
+        : numericReceived,
+
+      totalCourseFee: isEdit
+        ? initialStudent?.totalCourseFee || 0
+        : numericFee,
       registrationDate: date,
       courseStartDate: date,
     };
@@ -180,7 +203,7 @@ export const StudentModal: React.FC<StudentModalProps> = ({
         onSuccess(res.data);
       } else {
         const res = await studentApi.create(payload);
-        showToast(res.message || 'Student registered successfully!', 'success');
+        showToast(res.message || 'Student added successfully!', 'success');
         onSuccess(res.data);
       }
       onClose();
@@ -207,14 +230,9 @@ export const StudentModal: React.FC<StudentModalProps> = ({
               <UserPlus className="w-5 h-5 text-indigo-200" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">
+              <h2 className="text-xl font-semibold">
                 {isEdit ? 'Edit Student' : 'Add Student'}
               </h2>
-              <p className="text-xs text-indigo-200">
-                {isEdit
-                  ? 'Update student details and course enrollment'
-                  : 'Enter student details and initial payment to enroll'}
-              </p>
             </div>
           </div>
           <button
@@ -278,61 +296,63 @@ export const StudentModal: React.FC<StudentModalProps> = ({
               />
             </div>
 
-            {/* 4. Course (Dropdown) */}
+          
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Course <span className="text-rose-500">*</span>
               </label>
-              <select
-                required
+              <Select
                 value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              >
-                <option value="" disabled>
-                  Select Course
-                </option>
-                {courseOptions.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                onChange={setCourseName}
+                placeholder="Select Course"
+                options={courseOptions.map((course) => ({
+                  label: course,
+                  value: course,
+                }))}
+              />
             </div>
 
-            {/* 5. Duration (Dropdown: 6 Months, 1 Year) */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Duration <span className="text-rose-500">*</span>
               </label>
-              <select
+              <Select
                 required
                 value={courseDuration}
-                onChange={(e) => setCourseDuration(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              >
-                <option value="6 Months">6 Months</option>
-                <option value="1 Year">1 Year</option>
-              </select>
+                onChange={setCourseDuration}
+                options={[
+                  { label: "1 Months", value: "1 Months" },
+                  { label: "2 Months", value: "2 Months" },
+                  { label: "3 Months", value: "3 Months" },
+                  { label: "4 Months", value: "4 Months" },
+                  { label: "5 Months", value: "5 Months" },
+                  { label: "6 Months", value: "6 Months" },
+                  { label: "7 Months", value: "7 Months" },
+                  { label: "8 Months", value: "8 Months" },
+                  { label: "9 Months", value: "9 Months" },
+                  { label: "10 Months", value: "10 Months" },
+                  { label: "11 Months", value: "11 Months" },
+                  { label: "1 Year", value: "1 Year" },
+                ]}
+              />
             </div>
 
-            {/* 6. Class Mode (Dropdown: Offline, Online, Hybrid) */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Class Mode <span className="text-rose-500">*</span>
               </label>
-              <select
+              <Select
                 required
                 value={classMode}
-                onChange={(e) =>
-                  setClassMode(e.target.value as 'Offline' | 'Online' | 'Hybrid')
+                onChange={(value) =>
+                  setClassMode(value as 'Offline' | 'Online' | 'Hybrid')
                 }
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              >
-                <option value="Offline">Offline</option>
-                <option value="Online">Online</option>
-                <option value="Hybrid">Hybrid</option>
-              </select>
+                options={[
+                  { label: 'Offline', value: 'Offline' },
+                  { label: 'Online', value: 'Online' },
+                  { label: 'Hybrid', value: 'Hybrid' },
+                ]}
+              />
             </div>
 
             {/* 7. Branch (Dropdown: Calicut, Thirur) */}
@@ -340,15 +360,17 @@ export const StudentModal: React.FC<StudentModalProps> = ({
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Branch <span className="text-rose-500">*</span>
               </label>
-              <select
+              <Select
                 required
                 value={branch}
-                onChange={(e) => setBranch(e.target.value as 'Calicut' | 'Thirur')}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              >
-                <option value="Calicut">Calicut</option>
-                <option value="Thirur">Thirur</option>
-              </select>
+                onChange={(value) =>
+                  setBranch(value as 'Calicut' | 'Thirur')
+                }
+                options={[
+                  { label: 'Calicut', value: 'Calicut' },
+                  { label: 'Thirur', value: 'Thirur' },
+                ]}
+              />
             </div>
 
             {/* 8. Payment Method (Checkbox: Cash and Bank) */}
@@ -378,43 +400,46 @@ export const StudentModal: React.FC<StudentModalProps> = ({
               </div>
             </div>
 
-            {/* 9. Total Course Fee */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                Total Course Fee ({settings.currencySymbol || '₹'}){' '}
-                <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                step="any"
-                required
-                placeholder="e.g., 45000"
-                value={totalCourseFee}
-                onChange={(e) => setTotalCourseFee(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              />
-            </div>
+           
+            {!isEdit && (
+              <>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Total Course Fee ({settings.currencySymbol || '₹'}){" "}
+                    <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    required
+                    placeholder="e.g., 45000"
+                    value={totalCourseFee}
+                    onChange={(e) => setTotalCourseFee(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                  />
+                </div>
 
-            {/* 10. Received Amount */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                Received Amount ({settings.currencySymbol || '₹'})
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="any"
-                placeholder="e.g., 15000"
-                value={receivedAmount}
-                onChange={(e) => setReceivedAmount(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              />
-            </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Received Amount ({settings.currencySymbol || '₹'})
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder="e.g., 15000"
+                    value={receivedAmount}
+                    onChange={(e) => setReceivedAmount(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Fee Balance Preview strip */}
-          {numericTotal > 0 && (
+          {!isEdit && numericTotal > 0 && (
             <div className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="text-slate-600">
                 Remaining Balance:{' '}
@@ -429,8 +454,8 @@ export const StudentModal: React.FC<StudentModalProps> = ({
                   {numericPaid >= numericTotal
                     ? 'Paid in Full'
                     : numericPaid > 0
-                    ? 'Partially Paid'
-                    : 'Pending'}
+                      ? 'Partially Paid'
+                      : 'Pending'}
                 </span>
               </span>
             </div>
@@ -450,7 +475,7 @@ export const StudentModal: React.FC<StudentModalProps> = ({
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white text-sm font-semibold shadow-xs disabled:opacity-50 transition-colors"
             >
               <Save className="w-4 h-4" />
-              {submitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Register Student'}
+              {submitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Add Student'}
             </button>
           </div>
         </form>

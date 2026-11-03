@@ -14,6 +14,7 @@ import { formatCurrency, toInputDate } from '../utils/formatters';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../hooks/useAuth';
 import { PaymentStatusBadge } from './StatusBadge';
+import Select from './Select';
 
 interface RecordPaymentModalProps {
   isOpen: boolean;
@@ -50,8 +51,6 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
   const [paymentDate, setPaymentDate] = useState<string>(toInputDate());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
   const [transactionReference, setTransactionReference] = useState<string>('');
-  const [remarks, setRemarks] = useState<string>('');
-  const [allowAdvance, setAllowAdvance] = useState<boolean>(false);
 
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [downloading, setDownloading] = useState<boolean>(false);
@@ -68,8 +67,6 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
     setPaymentDate(toInputDate());
     setPaymentMethod('UPI');
     setTransactionReference('');
-    setRemarks('');
-    setAllowAdvance(false);
 
     if (preselectedStudent) {
       setActiveStudent(preselectedStudent);
@@ -105,8 +102,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
   const numericAmount = Number(amount) || 0;
   const exceedsBalance =
     activeStudent !== null &&
-    numericAmount > activeStudent.remainingBalance &&
-    !allowAdvance;
+    numericAmount > activeStudent.remainingBalance
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +118,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       return;
     }
 
-    if (numericAmount > activeStudent.remainingBalance && !allowAdvance) {
+    if (numericAmount > activeStudent.remainingBalance) {
       setError(
         `Payment amount (${formatCurrency(
           numericAmount,
@@ -143,8 +139,6 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
         paymentDate,
         paymentMethod,
         transactionReference: transactionReference.trim(),
-        remarks: remarks.trim(),
-        allowAdvance,
       });
 
       setRecordedResult(res.data);
@@ -157,9 +151,10 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       const msg =
         err?.response?.data?.message || err?.message || 'Failed to record payment.';
       setError(msg);
-    } finally {
-      setSubmitting(false);
-    }
+    }  finally {
+    setSubmitting(false);
+    onClose();
+  }
   };
 
   const handleGenerateReceiptDownload = async () => {
@@ -197,7 +192,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               <p className="text-xs text-indigo-200">
                 {recordedResult
                   ? `Official Receipt No: ${recordedResult.payment.receiptNumber}`
-                  : 'Create an immutable fee payment transaction'}
+                  : ''}
               </p>
             </div>
           </div>
@@ -444,17 +439,14 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                   Payment Method <span className="text-rose-500">*</span>
                 </label>
-                <select
+                <Select
                   value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                >
-                  {PAYMENT_METHODS.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                  options={PAYMENT_METHODS.map((method) => ({
+                    label: method,
+                    value: method,
+                  }))}
+                />
               </div>
 
               {/* Transaction Reference */}
@@ -470,42 +462,17 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
               </div>
-
-              {/* Payment Remarks */}
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Payment Remarks <span className="text-slate-400">(Optional)</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., Second semester installment payment"
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                />
-              </div>
             </div>
 
             {/* Advance Payment Opt-in if amount > remainingBalance */}
             {activeStudent && numericAmount > activeStudent.remainingBalance && (
-              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 space-y-2">
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
                 <p className="text-xs text-amber-800 font-medium">
-                  Entered amount ({formatCurrency(numericAmount, currency)}) exceeds the
-                  student&apos;s remaining balance (
-                  {formatCurrency(activeStudent.remainingBalance, currency)}).
+                  Entered amount {formatCurrency(numericAmount, currency)} exceeds the
+                  student's remaining balance.
                 </p>
-                <label className="inline-flex items-center gap-2 text-xs font-semibold text-amber-900 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={allowAdvance}
-                    onChange={(e) => setAllowAdvance(e.target.checked)}
-                    className="rounded border-amber-400 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  Explicitly allow as an advance fee payment
-                </label>
               </div>
             )}
-
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
               <button
                 type="button"

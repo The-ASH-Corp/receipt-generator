@@ -203,7 +203,7 @@ export const CoursesPage: React.FC = () => {
                   required
                   value={courseName}
                   onChange={(e) => setCourseName(e.target.value)}
-                  placeholder="e.g., Full Stack Web Development"
+                  placeholder="Enter new course name"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
               </div>

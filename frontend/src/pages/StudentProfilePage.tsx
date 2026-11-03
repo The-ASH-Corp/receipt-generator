@@ -131,14 +131,7 @@ export const StudentProfilePage: React.FC = () => {
             <Edit3 className="w-4 h-4 text-slate-600" />
             <span>Edit Student</span>
           </button>
-          <button
-            onClick={() => setIsPaymentModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-950 hover:bg-indigo-900 text-white text-sm font-semibold shadow-sm transition-colors"
-          >
-            <CreditCard className="w-4 h-4 text-indigo-300" />
-            <span>Record Payment</span>
-          </button>
-        </div>
+         </div>
       </div>
 
       {/* Fee Information Cards (Section 5 Requirements) */}

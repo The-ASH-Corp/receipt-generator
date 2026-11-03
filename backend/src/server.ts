@@ -2,12 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB, isMongoConnected } from './config/db';
-import { initializeSeedData } from './services/dataStore';
+import { initializeDefaults } from './services/dataStore';
 import authRoutes from './routes/authRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import studentRoutes from './routes/studentRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import settingsRoutes from './routes/settingsRoutes';
+import courseRoutes from './routes/courseRoutes';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware';
 
 dotenv.config();
@@ -40,6 +41,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/courses', courseRoutes);
 
 // Error Middleware
 app.use(notFoundHandler);
@@ -47,7 +49,7 @@ app.use(errorHandler);
 
 const startServer = async (): Promise<void> => {
   await connectDB();
-  await initializeSeedData();
+  await initializeDefaults();
 
   app.listen(PORT, () => {
     console.log(`=========================================================`);

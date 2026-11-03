@@ -39,7 +39,7 @@ export const LoginPage: React.FC = () => {
           <div className="text-center mb-6">
             <div className="mx-auto w-40 h-28 flex items-center justify-center">
               <img
-                src="/ash-academy-logo.svg"
+                src="/ash-academy-logo.png"
                 alt="Ash Academy Logo"
                 className="w-full h-full object-contain"
               />

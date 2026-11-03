@@ -1,16 +1,18 @@
 import { Request, Response } from 'express';
-import { listStudents, listPayments, getInstitutionSettings } from '../services/dataStore';
+import { listStudents, listPayments, getInstitutionSettings, listCourses } from '../services/dataStore';
 
 export const getDashboardSummary = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const [students, payments, settings] = await Promise.all([
+    const [students, payments, settings, courses] = await Promise.all([
       listStudents(),
       listPayments(),
       getInstitutionSettings(),
+      listCourses(),
     ]);
 
     const totalStudents = students.length;
     const activeStudents = students.filter((s) => s.status === 'Active').length;
+    const totalCourses = courses.length;
 
     const totalFeesCollected =
       Math.round(payments.reduce((sum, p) => sum + Number(p.amount || 0), 0) * 100) / 100;
@@ -40,6 +42,7 @@ export const getDashboardSummary = async (_req: Request, res: Response): Promise
       data: {
         summary: {
           totalStudents,
+          totalCourses,
           activeStudents,
           totalFeesCollected,
           pendingFees,

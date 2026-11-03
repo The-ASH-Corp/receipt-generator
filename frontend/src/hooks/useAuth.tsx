@@ -14,15 +14,34 @@ interface AuthContextValue {
 }
 
 const DEFAULT_FRONTEND_SETTINGS: InstitutionSettings = {
-  academyName: 'Apex Global Academy of Technology',
-  academyLogo: '',
-  address: '4th Floor, Innovation Tower, Residency Road, Bengaluru - 560025',
-  phone: '+91 80 4567 8900',
-  email: 'admissions@apexacademy.edu',
-  website: 'www.apexacademy.edu',
+  academyName: 'ASH ACADEMY',
+  academyLogo: '/ash-academy-logo.png',
+  address: '2nd Floor, OPS Mall, Vailathur,Tirur',
+  phone: '+91 8921365750',
+  email: 'connect@ashacademy.ai',
+  website: 'www.ashacademy.ai',
   receiptPrefix: 'REC',
-  receiptFooterMessage: 'Thank you for your payment! Looking forward to empowering your learning journey.',
+  receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
   currencySymbol: '₹',
+  selectedBranch: 'Thirur',
+  branches: {
+    Thirur: {
+      address: '2nd Floor, OPS Mall, Vailathur,Tirur',
+      phone: '+91 8921365750',
+      email: 'connect@ashacademy.ai',
+      website: 'www.ashacademy.ai',
+      receiptPrefix: 'REC',
+      receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
+    },
+    Calicut: {
+      address: 'Calicut, Kerala',
+      phone: '+91 8921365750',
+      email: 'connect@ashacademy.ai',
+      website: 'www.ashacademy.ai',
+      receiptPrefix: 'REC',
+      receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
+    },
+  },
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);

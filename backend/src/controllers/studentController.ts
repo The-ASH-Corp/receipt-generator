@@ -77,6 +77,10 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
       phone,
       courseName,
       courseDuration,
+      classMode,
+      branch,
+      paymentMethod,
+      receivedAmount,
       courseStartDate,
       totalCourseFee,
       registrationDate,
@@ -84,37 +88,37 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
     } = req.body;
 
     if (!fullName || !String(fullName).trim()) {
-      res.status(400).json({ success: false, message: 'Full name is required.' });
+      res.status(400).json({ success: false, message: 'Student Name is required.' });
       return;
     }
-    if (!email || !EMAIL_REGEX.test(String(email).trim())) {
+
+    if (email && String(email).trim() && !EMAIL_REGEX.test(String(email).trim())) {
       res.status(400).json({
         success: false,
         message: 'Please provide a valid email address.',
       });
       return;
     }
-    const cleanPhone = String(phone || '').trim().replace(/\s+/g, ' ');
-    if (!cleanPhone || !PHONE_WITH_CODE_REGEX.test(cleanPhone.replace(/[\s-]/g, ''))) {
+
+    const cleanPhone = String(phone || '').trim();
+    const phoneDigits = cleanPhone.replace(/[\s-]/g, '');
+    if (!phoneDigits || phoneDigits.length < 8) {
       res.status(400).json({
         success: false,
-        message:
-          'Phone number must include country code (e.g., +91 9876543210 or +1 5550192834).',
+        message: 'Please provide a valid WhatsApp number.',
       });
       return;
     }
+
     if (!courseName || !String(courseName).trim()) {
-      res.status(400).json({ success: false, message: 'Course name is required.' });
+      res.status(400).json({ success: false, message: 'Course is required.' });
       return;
     }
     if (!courseDuration || !String(courseDuration).trim()) {
-      res.status(400).json({ success: false, message: 'Course duration is required.' });
+      res.status(400).json({ success: false, message: 'Duration is required.' });
       return;
     }
-    if (!courseStartDate || isNaN(new Date(courseStartDate).getTime())) {
-      res.status(400).json({ success: false, message: 'Valid course start date is required.' });
-      return;
-    }
+
     const numericFee = Number(totalCourseFee);
     if (isNaN(numericFee) || numericFee <= 0) {
       res.status(400).json({
@@ -124,21 +128,43 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    const numericReceived = Number(receivedAmount) || 0;
+    if (numericReceived < 0) {
+      res.status(400).json({
+        success: false,
+        message: 'Received amount cannot be negative.',
+      });
+      return;
+    }
+    if (numericReceived > numericFee) {
+      res.status(400).json({
+        success: false,
+        message: 'Received amount cannot exceed total course fee.',
+      });
+      return;
+    }
+
+    const regDate = registrationDate || new Date().toISOString();
+
     const student = await createStudentRecord({
       fullName: String(fullName),
-      email: String(email),
+      email: email ? String(email).trim() : '',
       phone: cleanPhone,
       courseName: String(courseName),
       courseDuration: String(courseDuration),
-      courseStartDate,
+      classMode: classMode || 'Offline',
+      branch: branch || 'Calicut',
+      paymentMethod: Array.isArray(paymentMethod) ? paymentMethod.join(', ') : paymentMethod || '',
+      receivedAmount: numericReceived,
+      courseStartDate: courseStartDate || regDate,
       totalCourseFee: numericFee,
-      registrationDate: registrationDate || new Date().toISOString(),
+      registrationDate: regDate,
       status: status === 'Inactive' ? 'Inactive' : 'Active',
     });
 
     res.status(201).json({
       success: true,
-      message: `Student ${student.fullName} (${student.studentId}) registered successfully.`,
+      message: `Student ${student.fullName} registered successfully.`,
       data: student,
     });
   } catch (err) {
@@ -158,13 +184,16 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
       phone,
       courseName,
       courseDuration,
+      classMode,
+      branch,
+      paymentMethod,
       courseStartDate,
       totalCourseFee,
       registrationDate,
       status,
     } = req.body;
 
-    if (email !== undefined && !EMAIL_REGEX.test(String(email).trim())) {
+    if (email && String(email).trim() && !EMAIL_REGEX.test(String(email).trim())) {
       res.status(400).json({
         success: false,
         message: 'Please provide a valid email address.',
@@ -172,23 +201,17 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    if (phone !== undefined) {
-      const cleanPhone = String(phone).trim();
-      if (!PHONE_WITH_CODE_REGEX.test(cleanPhone.replace(/[\s-]/g, ''))) {
-        res.status(400).json({
-          success: false,
-          message: 'Phone number must include country code (e.g., +91 9876543210).',
-        });
-        return;
-      }
-    }
+    const cleanPhone = phone !== undefined ? String(phone).trim() : undefined;
 
     const updated = await updateStudentRecord(id, {
       fullName,
       email,
-      phone,
+      phone: cleanPhone,
       courseName,
       courseDuration,
+      classMode,
+      branch,
+      paymentMethod: Array.isArray(paymentMethod) ? paymentMethod.join(', ') : paymentMethod,
       courseStartDate,
       totalCourseFee: totalCourseFee !== undefined ? Number(totalCourseFee) : undefined,
       registrationDate,

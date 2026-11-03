@@ -226,8 +226,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 Received from{' '}
                 <span className="font-semibold text-slate-900">
                   {recordedResult.payment.studentName}
-                </span>{' '}
-                ({recordedResult.payment.studentId})
+                </span>
               </p>
               <div className="mt-3">
                 <PaymentStatusBadge status={recordedResult.student.paymentStatus} />
@@ -338,7 +337,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                   <option value="">-- Choose a registered student --</option>
                   {studentsList.map((s) => (
                     <option key={s._id} value={s._id}>
-                      {s.fullName} ({s.studentId}) — Bal:{' '}
+                      {s.fullName} ({s.courseName}) — Bal:{' '}
                       {formatCurrency(s.remainingBalance, currency)}
                     </option>
                   ))}
@@ -355,9 +354,9 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                     <span className="font-bold text-slate-900">{activeStudent.fullName}</span>
                   </div>
                   <div>
-                    <span className="text-xs text-slate-500 block">Student ID</span>
-                    <span className="font-mono font-semibold text-indigo-900">
-                      {activeStudent.studentId}
+                    <span className="text-xs text-slate-500 block">WhatsApp Phone</span>
+                    <span className="font-medium text-slate-800">
+                      {activeStudent.phone}
                     </span>
                   </div>
                   <div className="col-span-2">

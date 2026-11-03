@@ -3,16 +3,25 @@ import path from 'path';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { isMongoConnected } from '../config/db';
-import { StudentModel, IStudent, PaymentStatusType, StudentStatusType } from '../models/Student';
+import {
+  StudentModel,
+  IStudent,
+  PaymentStatusType,
+  StudentStatusType,
+  ClassModeType,
+  BranchType,
+} from '../models/Student';
 import { PaymentModel, IPayment, PaymentMethodType } from '../models/Payment';
 import { SettingsModel, ISettings } from '../models/Settings';
 import { AdminModel, IAdmin } from '../models/Admin';
+import { CourseModel, ICourse } from '../models/Course';
 import { CounterModel } from '../models/Counter';
 import { calculateFeeBreakdown, formatSequentialCode } from '../utils/idGenerator';
 
 interface LocalDatabaseSchema {
   students: IStudent[];
   payments: IPayment[];
+  courses?: ICourse[];
   settings: ISettings;
   admins: IAdmin[];
   counters: Record<string, number>;
@@ -43,15 +52,34 @@ class AsyncMutex {
 const txMutex = new AsyncMutex();
 
 const DEFAULT_SETTINGS: ISettings = {
-  academyName: 'Apex Global Academy of Technology',
-  academyLogo: '',
-  address: '4th Floor, Innovation Tower, Residency Road, Bengaluru - 560025',
-  phone: '+91 80 4567 8900',
-  email: 'admissions@apexacademy.edu',
-  website: 'www.apexacademy.edu',
-  receiptPrefix: 'REC',
-  receiptFooterMessage: 'Thank you for your payment! Looking forward to empowering your learning journey.',
+  academyName: 'ASH ACADEMY',
+  academyLogo: '/ash-academy-logo.png',
+  address: '2nd Floor, OPS Mall, Vailathur,Tirur',
+  phone: '+91 8921365750',
+  email: 'connect@ashacademy.ai',
+  website: 'www.ashacademy.ai',
+  receiptPrefix: 'e',
+  receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
   currencySymbol: '₹',
+  selectedBranch: 'Thirur',
+  branches: {
+    Thirur: {
+      address: '2nd Floor, OPS Mall, Vailathur,Tirur',
+      phone: '+91 8921365750',
+      email: 'connect@ashacademy.ai',
+      website: 'www.ashacademy.ai',
+      receiptPrefix: 'e',
+      receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
+    },
+    Calicut: {
+      address: 'Calicut, Kerala',
+      phone: '+91 8921365750',
+      email: 'connect@ashacademy.ai',
+      website: 'www.ashacademy.ai',
+      receiptPrefix: 'e',
+      receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
+    },
+  },
 };
 
 const readLocalDB = (): LocalDatabaseSchema => {
@@ -87,16 +115,25 @@ const writeLocalDB = (data: LocalDatabaseSchema): void => {
 
 const generateObjectId = (): string => crypto.randomBytes(12).toString('hex');
 
-export const initializeSeedData = async (): Promise<void> => {
+export const initializeDefaults = async (): Promise<void> => {
+  const defaultCourses = [
+    'Full Stack Web Development Bootcamp',
+    'Data Science & Machine Learning',
+    'UI/UX Product Design Mastery',
+    'Cloud Architecture & DevOps',
+  ];
+
   if (isMongoConnected()) {
     const existingSettings = await SettingsModel.findOne();
     if (!existingSettings) {
       await SettingsModel.create(DEFAULT_SETTINGS);
     }
 
-    const studentCount = await StudentModel.countDocuments();
-    if (studentCount === 0) {
-      await seedInitialSampleRecords();
+    const courseCount = await CourseModel.countDocuments();
+    if (courseCount === 0) {
+      for (const name of defaultCourses) {
+        await CourseModel.create({ name });
+      }
     }
   } else {
     await txMutex.runExclusive(async () => {
@@ -104,102 +141,18 @@ export const initializeSeedData = async (): Promise<void> => {
       if (!db.settings || !db.settings.academyName) {
         db.settings = { ...DEFAULT_SETTINGS };
       }
+      if (!db.courses || db.courses.length === 0) {
+        const now = new Date().toISOString();
+        db.courses = defaultCourses.map((name) => ({
+          _id: generateObjectId(),
+          name,
+          createdAt: now,
+          updatedAt: now,
+        }));
+      }
       writeLocalDB(db);
     });
-
-    const dbAfter = readLocalDB();
-    if (dbAfter.students.length === 0) {
-      await seedInitialSampleRecords();
-    }
   }
-};
-
-const seedInitialSampleRecords = async (): Promise<void> => {
-  // Seed 4 realistic students across Paid, Partially Paid, and Pending statuses
-  const s1 = await createStudentRecord({
-    fullName: 'Aarav Sharma',
-    email: 'aarav.sharma@example.com',
-    phone: '+91 98450 11223',
-    courseName: 'Full Stack Web Development Bootcamp',
-    courseDuration: '6 Months',
-    courseStartDate: '2026-09-01',
-    totalCourseFee: 45000,
-    registrationDate: '2026-08-20',
-    status: 'Active',
-  });
-
-  const s2 = await createStudentRecord({
-    fullName: 'Priya Nair',
-    email: 'priya.nair@example.com',
-    phone: '+91 97312 44556',
-    courseName: 'Data Science & Machine Learning',
-    courseDuration: '8 Months',
-    courseStartDate: '2026-09-15',
-    totalCourseFee: 60000,
-    registrationDate: '2026-09-02',
-    status: 'Active',
-  });
-
-  const s3 = await createStudentRecord({
-    fullName: 'Rohan Verma',
-    email: 'rohan.verma@example.com',
-    phone: '+91 99001 77889',
-    courseName: 'UI/UX Product Design Mastery',
-    courseDuration: '4 Months',
-    courseStartDate: '2026-10-01',
-    totalCourseFee: 32000,
-    registrationDate: '2026-09-25',
-    status: 'Active',
-  });
-
-  await createStudentRecord({
-    fullName: 'Sneha Kulkarni',
-    email: 'sneha.kulkarni@example.com',
-    phone: '+91 96112 33445',
-    courseName: 'Cloud Architecture & DevOps',
-    courseDuration: '6 Months',
-    courseStartDate: '2026-10-15',
-    totalCourseFee: 50000,
-    registrationDate: '2026-10-10',
-    status: 'Active',
-  });
-
-  // Record realistic payments for Aarav (Full Paid in 2 installments), Priya (Partially Paid), Rohan (Partially Paid)
-  await recordPaymentTransaction({
-    studentId: s1._id,
-    amount: 25000,
-    paymentDate: '2026-08-22',
-    paymentMethod: 'UPI',
-    transactionReference: 'UPI-623489102341',
-    remarks: 'First installment at registration',
-  });
-
-  await recordPaymentTransaction({
-    studentId: s1._id,
-    amount: 20000,
-    paymentDate: '2026-09-25',
-    paymentMethod: 'Bank Transfer',
-    transactionReference: 'NEFT-HDFC9928371',
-    remarks: 'Final installment clearing full course fee',
-  });
-
-  await recordPaymentTransaction({
-    studentId: s2._id,
-    amount: 35000,
-    paymentDate: '2026-09-05',
-    paymentMethod: 'Card',
-    transactionReference: 'POS-4829-9910',
-    remarks: 'Initial installment via credit card',
-  });
-
-  await recordPaymentTransaction({
-    studentId: s3._id,
-    amount: 16000,
-    paymentDate: '2026-09-28',
-    paymentMethod: 'Cash',
-    transactionReference: 'CSH-COUNTER-01',
-    remarks: '50% upfront fee payment',
-  });
 };
 
 // Next sequence generator (atomic)
@@ -307,6 +260,8 @@ export const updateInstitutionSettings = async (
       receiptFooterMessage:
         updates.receiptFooterMessage?.trim() || DEFAULT_SETTINGS.receiptFooterMessage,
       currencySymbol: updates.currencySymbol?.trim() || '₹',
+      selectedBranch: updates.selectedBranch || 'Thirur',
+      branches: updates.branches || DEFAULT_SETTINGS.branches,
       updatedAt: new Date().toISOString(),
     };
 
@@ -368,11 +323,15 @@ const recomputeStudentBalance = async (studentInternalId: string): Promise<IStud
 // Students CRUD
 export interface CreateStudentInput {
   fullName: string;
-  email: string;
+  email?: string;
   phone: string;
   courseName: string;
   courseDuration: string;
-  courseStartDate: string | Date;
+  classMode?: ClassModeType;
+  branch?: BranchType;
+  paymentMethod?: string;
+  receivedAmount?: number;
+  courseStartDate?: string | Date;
   totalCourseFee: number;
   registrationDate?: string | Date;
   status?: StudentStatusType;
@@ -383,56 +342,133 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
     const seq = await getNextSequence('student');
     const studentId = formatSequentialCode('STU', seq, new Date());
     const fee = Math.round(Number(input.totalCourseFee) * 100) / 100;
-    const breakdown = calculateFeeBreakdown(fee, 0);
+    const initialPaid = Math.max(
+      0,
+      Math.min(fee, Math.round(Number(input.receivedAmount || 0) * 100) / 100)
+    );
+    const breakdown = calculateFeeBreakdown(fee, initialPaid);
     const now = new Date().toISOString();
+    const regDate = input.registrationDate ? new Date(input.registrationDate) : new Date();
+    const startDate = input.courseStartDate ? new Date(input.courseStartDate) : regDate;
+
+    let createdStudent: IStudent;
 
     if (isMongoConnected()) {
       const created = await StudentModel.create({
         studentId,
         fullName: input.fullName.trim(),
-        email: input.email.toLowerCase().trim(),
+        email: input.email ? input.email.toLowerCase().trim() : '',
         phone: input.phone.trim(),
         courseName: input.courseName.trim(),
         courseDuration: input.courseDuration.trim(),
-        courseStartDate: new Date(input.courseStartDate),
+        classMode: input.classMode || 'Offline',
+        branch: input.branch || 'Calicut',
+        paymentMethod: input.paymentMethod || '',
+        courseStartDate: startDate,
         totalCourseFee: breakdown.totalCourseFee,
-        totalAmountPaid: 0,
+        totalAmountPaid: breakdown.totalAmountPaid,
         remainingBalance: breakdown.remainingBalance,
         paymentStatus: breakdown.paymentStatus,
-        registrationDate: input.registrationDate ? new Date(input.registrationDate) : new Date(),
+        registrationDate: regDate,
         status: input.status || 'Active',
       });
-      return { ...created.toObject(), _id: String(created._id) };
+      createdStudent = { ...created.toObject(), _id: String(created._id) };
+
+      if (initialPaid > 0) {
+        const settings = await getInstitutionSettings();
+        const prefix = settings.receiptPrefix || 'REC';
+        const receiptSeq = await getNextSequence('receipt');
+        const receiptNumber = formatSequentialCode(prefix, receiptSeq, regDate);
+
+        await PaymentModel.create({
+          receiptNumber,
+          student: String(created._id),
+          studentId: createdStudent.studentId,
+          studentName: createdStudent.fullName,
+          studentEmail: createdStudent.email || '',
+          studentPhone: createdStudent.phone,
+          courseName: createdStudent.courseName,
+          amount: initialPaid,
+          totalCourseFeeSnapshot: createdStudent.totalCourseFee,
+          previousAmountPaid: 0,
+          totalAmountPaidAfter: initialPaid,
+          remainingBalanceAfter: breakdown.remainingBalance,
+          paymentStatusAfter: breakdown.paymentStatus,
+          paymentDate: regDate,
+          paymentMethod: input.paymentMethod || 'Cash',
+          transactionReference: 'Initial Registration Payment',
+          remarks: 'Payment received at registration',
+          allowAdvance: false,
+          branch: input.branch || createdStudent.branch || 'Calicut',
+        });
+      }
     } else {
       const db = readLocalDB();
-      // Ensure unique studentId
       if (db.students.some((s) => s.studentId === studentId)) {
         throw new Error(`Duplicate Student ID generated: ${studentId}`);
       }
+      const newStudentId = generateObjectId();
       const newStudent: IStudent = {
-        _id: generateObjectId(),
+        _id: newStudentId,
         studentId,
         fullName: input.fullName.trim(),
-        email: input.email.toLowerCase().trim(),
+        email: input.email ? input.email.toLowerCase().trim() : '',
         phone: input.phone.trim(),
         courseName: input.courseName.trim(),
         courseDuration: input.courseDuration.trim(),
-        courseStartDate: new Date(input.courseStartDate).toISOString(),
+        classMode: input.classMode || 'Offline',
+        branch: input.branch || 'Calicut',
+        paymentMethod: input.paymentMethod || '',
+        courseStartDate: startDate.toISOString(),
         totalCourseFee: breakdown.totalCourseFee,
-        totalAmountPaid: 0,
+        totalAmountPaid: breakdown.totalAmountPaid,
         remainingBalance: breakdown.remainingBalance,
         paymentStatus: breakdown.paymentStatus,
-        registrationDate: input.registrationDate
-          ? new Date(input.registrationDate).toISOString()
-          : now,
+        registrationDate: regDate.toISOString(),
         status: input.status || 'Active',
         createdAt: now,
         updatedAt: now,
       };
       db.students.unshift(newStudent);
+
+      if (initialPaid > 0) {
+        const settings = db.settings || DEFAULT_SETTINGS;
+        const prefix = settings.receiptPrefix || 'REC';
+        const receiptSeq = (db.counters['receipt'] || 0) + 1;
+        db.counters['receipt'] = receiptSeq;
+        const receiptNumber = formatSequentialCode(prefix, receiptSeq, regDate);
+
+        const newPayment: IPayment = {
+          _id: generateObjectId(),
+          receiptNumber,
+          student: newStudentId,
+          studentId: newStudent.studentId,
+          studentName: newStudent.fullName,
+          studentEmail: newStudent.email || '',
+          studentPhone: newStudent.phone,
+          courseName: newStudent.courseName,
+          amount: initialPaid,
+          totalCourseFeeSnapshot: newStudent.totalCourseFee,
+          previousAmountPaid: 0,
+          totalAmountPaidAfter: initialPaid,
+          remainingBalanceAfter: breakdown.remainingBalance,
+          paymentStatusAfter: breakdown.paymentStatus,
+          paymentDate: regDate.toISOString(),
+          paymentMethod: (input.paymentMethod as any) || 'Cash',
+          transactionReference: 'Initial Registration Payment',
+          remarks: 'Payment received at registration',
+          allowAdvance: false,
+          branch: input.branch || 'Calicut',
+          createdAt: now,
+        };
+        db.payments.unshift(newPayment);
+      }
+
       writeLocalDB(db);
-      return newStudent;
+      createdStudent = newStudent;
     }
+
+    return createdStudent;
   });
 };
 
@@ -463,6 +499,9 @@ export const updateStudentRecord = async (
       if (updates.courseName !== undefined) student.courseName = updates.courseName.trim();
       if (updates.courseDuration !== undefined)
         student.courseDuration = updates.courseDuration.trim();
+      if (updates.classMode !== undefined) student.classMode = updates.classMode;
+      if (updates.branch !== undefined) student.branch = updates.branch;
+      if (updates.paymentMethod !== undefined) student.paymentMethod = updates.paymentMethod;
       if (updates.courseStartDate !== undefined)
         student.courseStartDate = new Date(updates.courseStartDate);
       if (updates.registrationDate !== undefined)
@@ -500,6 +539,9 @@ export const updateStudentRecord = async (
       if (updates.courseName !== undefined) student.courseName = updates.courseName.trim();
       if (updates.courseDuration !== undefined)
         student.courseDuration = updates.courseDuration.trim();
+      if (updates.classMode !== undefined) student.classMode = updates.classMode;
+      if (updates.branch !== undefined) student.branch = updates.branch;
+      if (updates.paymentMethod !== undefined) student.paymentMethod = updates.paymentMethod;
       if (updates.courseStartDate !== undefined)
         student.courseStartDate = new Date(updates.courseStartDate).toISOString();
       if (updates.registrationDate !== undefined)
@@ -545,7 +587,7 @@ export const listStudents = async (query: StudentFilterQuery = {}): Promise<IStu
     students = students.filter(
       (s) =>
         s.fullName.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q) ||
+        (s.email && s.email.toLowerCase().includes(q)) ||
         s.studentId.toLowerCase().includes(q) ||
         s.phone.toLowerCase().includes(q)
     );
@@ -663,6 +705,7 @@ export const recordPaymentTransaction = async (
         transactionReference: input.transactionReference?.trim() || '',
         remarks: input.remarks?.trim() || '',
         allowAdvance: Boolean(input.allowAdvance),
+        branch: student.branch || 'Calicut',
       });
 
       student.totalAmountPaid = breakdownAfter.totalAmountPaid;
@@ -735,6 +778,7 @@ export const recordPaymentTransaction = async (
         transactionReference: input.transactionReference?.trim() || '',
         remarks: input.remarks?.trim() || '',
         allowAdvance: Boolean(input.allowAdvance),
+        branch: student.branch || 'Calicut',
         createdAt: nowIso,
       };
 
@@ -820,6 +864,20 @@ export const listPayments = async (query: PaymentFilterQuery = {}): Promise<IPay
     payments = payments.filter((p) => new Date(p.paymentDate) <= end);
   }
 
+  // Enrich branch if not present
+  if (!isMongoConnected()) {
+    const db = readLocalDB();
+    payments = payments.map((p) => {
+      if (!p.branch && p.student) {
+        const student = db.students.find(
+          (s) => s._id === p.student || s.studentId === p.student
+        );
+        if (student?.branch) return { ...p, branch: student.branch };
+      }
+      return p;
+    });
+  }
+
   return payments;
 };
 
@@ -832,13 +890,136 @@ export const getPaymentByIdOrReceipt = async (idOrReceipt: string): Promise<IPay
     if (!doc) {
       doc = await PaymentModel.findOne({ receiptNumber: idOrReceipt }).lean();
     }
-    return doc ? { ...doc, _id: String(doc._id) } : null;
+    if (!doc) return null;
+    const payment = { ...doc, _id: String(doc._id) } as IPayment;
+    if (!payment.branch && payment.student) {
+      const student = await StudentModel.findById(payment.student).lean();
+      if (student?.branch) payment.branch = student.branch;
+    }
+    return payment;
   } else {
     const db = readLocalDB();
-    return (
-      db.payments.find(
-        (p) => p._id === idOrReceipt || p.receiptNumber.toLowerCase() === idOrReceipt.toLowerCase()
-      ) || null
+    const payment = db.payments.find(
+      (p) => p._id === idOrReceipt || p.receiptNumber.toLowerCase() === idOrReceipt.toLowerCase()
     );
+    if (!payment) return null;
+    const copy = { ...payment };
+    if (!copy.branch && copy.student) {
+      const student = db.students.find(
+        (s) => s._id === copy.student || s.studentId === copy.student
+      );
+      if (student?.branch) copy.branch = student.branch;
+    }
+    return copy;
   }
+};
+
+// Courses CRUD
+export const listCourses = async (): Promise<ICourse[]> => {
+  if (isMongoConnected()) {
+    const docs = await CourseModel.find().sort({ createdAt: -1 }).lean();
+    return docs.map((d) => ({ ...d, _id: String(d._id) }));
+  } else {
+    const db = readLocalDB();
+    return [...(db.courses || [])];
+  }
+};
+
+export const createCourseRecord = async (name: string): Promise<ICourse> => {
+  return txMutex.runExclusive(async () => {
+    const cleanName = name.trim();
+    if (!cleanName) {
+      throw new Error('Course name is required.');
+    }
+
+    if (isMongoConnected()) {
+      const existing = await CourseModel.findOne({
+        name: { $regex: new RegExp(`^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+      });
+      if (existing) {
+        throw new Error('A course with this name already exists.');
+      }
+      const created = await CourseModel.create({ name: cleanName });
+      return { ...created.toObject(), _id: String(created._id) };
+    } else {
+      const db = readLocalDB();
+      if (!db.courses) db.courses = [];
+      if (db.courses.some((c) => c.name.toLowerCase() === cleanName.toLowerCase())) {
+        throw new Error('A course with this name already exists.');
+      }
+      const now = new Date().toISOString();
+      const newCourse: ICourse = {
+        _id: generateObjectId(),
+        name: cleanName,
+        createdAt: now,
+        updatedAt: now,
+      };
+      db.courses.unshift(newCourse);
+      writeLocalDB(db);
+      return newCourse;
+    }
+  });
+};
+
+export const updateCourseRecord = async (
+  id: string,
+  name: string
+): Promise<ICourse | null> => {
+  return txMutex.runExclusive(async () => {
+    const cleanName = name.trim();
+    if (!cleanName) {
+      throw new Error('Course name is required.');
+    }
+
+    if (isMongoConnected()) {
+      const duplicate = await CourseModel.findOne({
+        _id: { $ne: id },
+        name: { $regex: new RegExp(`^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+      });
+      if (duplicate) {
+        throw new Error('Another course with this name already exists.');
+      }
+      const updated = await CourseModel.findByIdAndUpdate(
+        id,
+        { name: cleanName },
+        { new: true }
+      ).lean();
+      return updated ? { ...updated, _id: String(updated._id) } : null;
+    } else {
+      const db = readLocalDB();
+      if (!db.courses) db.courses = [];
+      const idx = db.courses.findIndex((c) => c._id === id);
+      if (idx === -1) return null;
+
+      if (
+        db.courses.some(
+          (c, i) => i !== idx && c.name.toLowerCase() === cleanName.toLowerCase()
+        )
+      ) {
+        throw new Error('Another course with this name already exists.');
+      }
+
+      db.courses[idx].name = cleanName;
+      db.courses[idx].updatedAt = new Date().toISOString();
+      writeLocalDB(db);
+      return db.courses[idx];
+    }
+  });
+};
+
+export const deleteCourseRecord = async (id: string): Promise<boolean> => {
+  return txMutex.runExclusive(async () => {
+    if (isMongoConnected()) {
+      const deleted = await CourseModel.findByIdAndDelete(id);
+      return Boolean(deleted);
+    } else {
+      const db = readLocalDB();
+      if (!db.courses) return false;
+      const prevLen = db.courses.length;
+      db.courses = db.courses.filter((c) => c._id !== id);
+      if (db.courses.length === prevLen) return false;
+      writeLocalDB(db);
+      return true;
+    }
+  });
 };

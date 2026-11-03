@@ -13,11 +13,13 @@ import {
   FileText,
   Receipt,
   CheckCircle2,
+  MapPin,
+  Laptop,
 } from 'lucide-react';
 import { Payment, Student } from '../types';
 import { paymentApi, studentApi } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { PaymentStatusBadge, StudentStatusBadge } from '../components/StatusBadge';
+import { PaymentStatusBadge } from '../components/StatusBadge';
 import { StudentModal } from '../components/StudentModal';
 import { RecordPaymentModal } from '../components/RecordPaymentModal';
 import { ReceiptPreviewModal } from '../components/ReceiptPreviewModal';
@@ -114,11 +116,9 @@ export const StudentProfilePage: React.FC = () => {
               <h1 className="font-heading text-2xl sm:text-3xl font-bold text-indigo-900 tracking-tight">
                 {student.fullName}
               </h1>
-              <StudentStatusBadge status={student.status} />
             </div>
-            <p className="text-xs font-mono font-semibold text-indigo-800 mt-0.5">
-              Student ID: {student.studentId} &bull; Registered{' '}
-              {formatDate(student.registrationDate)}
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              Registered {formatDate(student.registrationDate)}
             </p>
           </div>
         </div>
@@ -205,20 +205,10 @@ export const StudentProfilePage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-sm">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-              <Mail className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-xs text-slate-500 block">Email Address</span>
-              <span className="font-semibold text-slate-900">{student.email}</span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
               <Phone className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs text-slate-500 block">Phone Number</span>
+              <span className="text-xs text-slate-500 block">WhatsApp Number</span>
               <span className="font-semibold text-slate-900">{student.phone}</span>
             </div>
           </div>
@@ -228,7 +218,7 @@ export const StudentProfilePage: React.FC = () => {
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs text-slate-500 block">Course Name</span>
+              <span className="text-xs text-slate-500 block">Course</span>
               <span className="font-semibold text-slate-900">{student.courseName}</span>
             </div>
           </div>
@@ -238,8 +228,28 @@ export const StudentProfilePage: React.FC = () => {
               <Clock className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs text-slate-500 block">Course Duration</span>
+              <span className="text-xs text-slate-500 block">Duration</span>
               <span className="font-semibold text-slate-900">{student.courseDuration}</span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+              <Laptop className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs text-slate-500 block">Class Mode</span>
+              <span className="font-semibold text-slate-900">{student.classMode || 'Offline'}</span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs text-slate-500 block">Branch</span>
+              <span className="font-semibold text-slate-900">{student.branch || 'Calicut'}</span>
             </div>
           </div>
 
@@ -248,24 +258,24 @@ export const StudentProfilePage: React.FC = () => {
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs text-slate-500 block">Course Start Date</span>
-              <span className="font-semibold text-slate-900">
-                {formatDate(student.courseStartDate)}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-            <div>
               <span className="text-xs text-slate-500 block">Registration Date</span>
               <span className="font-semibold text-slate-900">
                 {formatDate(student.registrationDate)}
               </span>
             </div>
           </div>
+
+          {student.email ? (
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs text-slate-500 block">Email Address</span>
+                <span className="font-semibold text-slate-900">{student.email}</span>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -273,13 +283,10 @@ export const StudentProfilePage: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
+            <h2 className="font-heading text-base font-bold text-indigo-900">
               Student Payment History
             </h2>
-            <p className="text-xs text-slate-500">
-              Complete immutable transaction ledger & downloadable official PDF receipts
-            </p>
-          </div>
+            </div>
           <button
             onClick={() => setIsPaymentModalOpen(true)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-bold transition-colors self-start sm:self-auto"
@@ -398,6 +405,7 @@ export const StudentProfilePage: React.FC = () => {
       {/* Receipt Preview Modal */}
       <ReceiptPreviewModal
         payment={previewPayment}
+        branch={student?.branch}
         onClose={() => setPreviewPayment(null)}
       />
     </div>

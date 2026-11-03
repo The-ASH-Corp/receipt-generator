@@ -8,9 +8,8 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { StudentsPage } from './pages/StudentsPage';
 import { StudentProfilePage } from './pages/StudentProfilePage';
-import { PaymentsPage } from './pages/PaymentsPage';
-import { TransactionsPage } from './pages/TransactionsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { CoursesPage } from './pages/CoursesPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { token, loading } = useAuth();
@@ -54,8 +53,7 @@ export const App: React.FC = () => {
               <Route index element={<DashboardPage />} />
               <Route path="students" element={<StudentsPage />} />
               <Route path="students/:id" element={<StudentProfilePage />} />
-              <Route path="payments" element={<PaymentsPage />} />
-              <Route path="transactions" element={<TransactionsPage />} />
+              <Route path="courses" element={<CoursesPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

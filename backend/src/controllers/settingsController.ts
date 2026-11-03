@@ -28,6 +28,8 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
       receiptPrefix,
       receiptFooterMessage,
       currencySymbol,
+      selectedBranch,
+      branches,
     } = req.body;
 
     if (!academyName || !String(academyName).trim()) {
@@ -62,6 +64,8 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
       receiptPrefix,
       receiptFooterMessage,
       currencySymbol,
+      selectedBranch,
+      branches,
     });
 
     res.json({

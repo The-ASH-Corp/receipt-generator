@@ -11,6 +11,18 @@ export interface ISettings {
   receiptPrefix: string;
   receiptFooterMessage: string;
   currencySymbol: string;
+  selectedBranch?: string;
+  branches?: Record<
+    string,
+    {
+      address?: string;
+      phone?: string;
+      email?: string;
+      website?: string;
+      receiptPrefix?: string;
+      receiptFooterMessage?: string;
+    }
+  >;
   updatedAt?: string | Date;
 }
 
@@ -21,7 +33,7 @@ const SettingsSchema = new Schema<ISettingsDocument>(
     academyName: {
       type: String,
       required: true,
-      default: 'Apex Global Academy of Technology',
+      default: 'Ash Academy',
       trim: true,
     },
     academyLogo: {
@@ -43,31 +55,39 @@ const SettingsSchema = new Schema<ISettingsDocument>(
     email: {
       type: String,
       required: true,
-      default: 'admissions@apexacademy.edu',
+      default: '',
       trim: true,
     },
     website: {
       type: String,
-      default: 'www.apexacademy.edu',
+      default: '',
       trim: true,
     },
     receiptPrefix: {
       type: String,
       required: true,
-      default: 'REC',
+      default: 'e',
       trim: true,
-      uppercase: true,
     },
     receiptFooterMessage: {
       type: String,
       required: true,
-      default: 'Thank you for your payment! Looking forward to empowering your learning journey.',
+      default: 'Please note: All payments are final and non-refundable.',
       trim: true,
     },
     currencySymbol: {
       type: String,
       default: '₹',
       trim: true,
+    },
+    selectedBranch: {
+      type: String,
+      default: 'Thirur',
+      trim: true,
+    },
+    branches: {
+      type: Schema.Types.Mixed,
+      default: {},
     },
   },
   {

@@ -13,7 +13,7 @@ import {
 import { Payment, Student } from '../types';
 import { studentApi } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { PaymentStatusBadge, StudentStatusBadge } from '../components/StatusBadge';
+import { PaymentStatusBadge } from '../components/StatusBadge';
 import { StudentModal } from '../components/StudentModal';
 import { RecordPaymentModal } from '../components/RecordPaymentModal';
 import { ReceiptPreviewModal } from '../components/ReceiptPreviewModal';
@@ -31,7 +31,6 @@ export const StudentsPage: React.FC = () => {
 
   const [search, setSearch] = useState<string>('');
   const [selectedCourse, setSelectedCourse] = useState<string>('All');
-  const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>('All');
 
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
@@ -45,7 +44,6 @@ export const StudentsPage: React.FC = () => {
       const res = await studentApi.list({
         search: search || undefined,
         course: selectedCourse !== 'All' ? selectedCourse : undefined,
-        status: selectedStatus !== 'All' ? selectedStatus : undefined,
         paymentStatus: selectedPaymentStatus !== 'All' ? selectedPaymentStatus : undefined,
       });
       setStudents(res.students);
@@ -55,7 +53,7 @@ export const StudentsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [search, selectedCourse, selectedStatus, selectedPaymentStatus, showToast]);
+  }, [search, selectedCourse, selectedPaymentStatus, showToast]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -67,7 +65,6 @@ export const StudentsPage: React.FC = () => {
   const handleResetFilters = () => {
     setSearch('');
     setSelectedCourse('All');
-    setSelectedStatus('All');
     setSelectedPaymentStatus('All');
   };
 
@@ -76,12 +73,9 @@ export const StudentsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-indigo-900 tracking-tight">
+          <h1 className="font-heading text-2xl sm:text-3xl font-semibold text-indigo-900 tracking-tight">
             Student Management
           </h1>
-          <p className="text-sm text-slate-600 mt-0.5">
-            Register students, manage course enrollments, and track individual fee balances
-          </p>
         </div>
         <button
           onClick={() => {
@@ -99,13 +93,13 @@ export const StudentsPage: React.FC = () => {
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
           {/* Search Input */}
-          <div className="lg:col-span-4 relative">
+          <div className="lg:col-span-5 relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, or student ID..."
+              placeholder="Search by name or phone..."
               className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
             />
           </div>
@@ -126,21 +120,8 @@ export const StudentsPage: React.FC = () => {
             </select>
           </div>
 
-          {/* Student Status Filter */}
-          <div className="lg:col-span-2">
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-
           {/* Payment Status Filter */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <select
               value={selectedPaymentStatus}
               onChange={(e) => setSelectedPaymentStatus(e.target.value)}
@@ -151,18 +132,6 @@ export const StudentsPage: React.FC = () => {
               <option value="Partially Paid">Partially Paid</option>
               <option value="Pending">Pending</option>
             </select>
-          </div>
-
-          {/* Reset Button */}
-          <div className="lg:col-span-1 flex items-center">
-            <button
-              onClick={handleResetFilters}
-              title="Reset Filters"
-              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span className="lg:hidden">Reset</span>
-            </button>
           </div>
         </div>
       </div>
@@ -185,27 +154,17 @@ export const StudentsPage: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  <th className="py-3.5 px-4">Student ID</th>
                   <th className="py-3.5 px-4">Student Details</th>
                   <th className="py-3.5 px-4">Course & Duration</th>
                   <th className="py-3.5 px-4">Total Fee</th>
                   <th className="py-3.5 px-4">Paid / Balance</th>
                   <th className="py-3.5 px-4">Fee Status</th>
-                  <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/70 text-sm">
                 {students.map((student) => (
                   <tr key={student._id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 px-4 font-mono text-xs font-bold text-indigo-950 whitespace-nowrap">
-                      <Link
-                        to={`/students/${student._id}`}
-                        className="hover:underline text-indigo-900"
-                      >
-                        {student.studentId}
-                      </Link>
-                    </td>
                     <td className="py-4 px-4">
                       <Link
                         to={`/students/${student._id}`}
@@ -213,16 +172,17 @@ export const StudentsPage: React.FC = () => {
                       >
                         {student.fullName}
                       </Link>
-                      <span className="text-xs text-slate-500 block">{student.email}</span>
-                      <span className="text-xs text-slate-500 block">{student.phone}</span>
+                      <span className="text-xs text-slate-600 block">WhatsApp: {student.phone}</span>
+                      {student.email ? <span className="text-xs text-slate-400 block">{student.email}</span> : null}
                     </td>
                     <td className="py-4 px-4">
                       <span className="font-semibold text-slate-800 block">
                         {student.courseName}
                       </span>
                       <span className="text-xs text-slate-500">
-                        {student.courseDuration} &bull; Starts{' '}
-                        {formatDate(student.courseStartDate)}
+                        {student.courseDuration}
+                        {student.branch ? ` • ${student.branch}` : ''}
+                        {student.classMode ? ` • ${student.classMode}` : ''}
                       </span>
                     </td>
                     <td className="py-4 px-4 font-bold text-slate-900 whitespace-nowrap">
@@ -251,9 +211,6 @@ export const StudentsPage: React.FC = () => {
                     <td className="py-4 px-4 whitespace-nowrap">
                       <PaymentStatusBadge status={student.paymentStatus} />
                     </td>
-                    <td className="py-4 px-4 whitespace-nowrap">
-                      <StudentStatusBadge status={student.status} />
-                    </td>
                     <td className="py-4 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
                         <Link
@@ -262,7 +219,7 @@ export const StudentsPage: React.FC = () => {
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-xs font-semibold text-slate-700 hover:text-indigo-800 transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Profile</span>
+                          <span>View</span>
                         </Link>
                         <button
                           onClick={() => setPaymentStudent(student)}
@@ -334,6 +291,7 @@ export const StudentsPage: React.FC = () => {
       {/* Receipt Preview Modal */}
       <ReceiptPreviewModal
         payment={previewPayment}
+        branch={paymentStudent?.branch || previewPayment?.branch}
         onClose={() => setPreviewPayment(null)}
       />
     </div>

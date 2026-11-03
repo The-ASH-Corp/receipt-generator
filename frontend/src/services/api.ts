@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {
   AdminUser,
+  Course,
   DashboardData,
   InstitutionSettings,
   Payment,
@@ -61,11 +62,15 @@ export const dashboardApi = {
 // Students API
 export interface StudentPayload {
   fullName: string;
-  email: string;
+  email?: string;
   phone: string;
   courseName: string;
   courseDuration: string;
-  courseStartDate: string;
+  classMode?: 'Offline' | 'Online' | 'Hybrid';
+  branch?: 'Calicut' | 'Thirur' | string;
+  paymentMethod?: string;
+  receivedAmount?: number;
+  courseStartDate?: string;
   totalCourseFee: number;
   registrationDate?: string;
   status?: StudentStatus;
@@ -177,6 +182,34 @@ export const paymentApi = {
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     window.open(url, '_blank');
+  },
+};
+
+// Courses API
+export const courseApi = {
+  list: async () => {
+    const res = await apiClient.get<{ success: boolean; data: Course[] }>('/courses');
+    return res.data.data;
+  },
+  create: async (name: string) => {
+    const res = await apiClient.post<{ success: boolean; message: string; data: Course }>(
+      '/courses',
+      { name }
+    );
+    return res.data;
+  },
+  update: async (id: string, name: string) => {
+    const res = await apiClient.put<{ success: boolean; message: string; data: Course }>(
+      `/courses/${id}`,
+      { name }
+    );
+    return res.data;
+  },
+  remove: async (id: string) => {
+    const res = await apiClient.delete<{ success: boolean; message: string }>(
+      `/courses/${id}`
+    );
+    return res.data;
   },
 };
 

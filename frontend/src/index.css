@@ -13,9 +13,14 @@
   h4,
   h5,
   h6 {
-    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Poppins', system-ui, sans-serif !important;
+    letter-spacing: -0.015em;
   }
+}
+
+.font-heading {
+  font-family: 'Poppins', system-ui, sans-serif !important;
+  letter-spacing: -0.015em;
 }
 
 /* Custom subtle scrollbar */

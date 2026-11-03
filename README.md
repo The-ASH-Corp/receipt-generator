@@ -12,7 +12,7 @@ student-fee-manager/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/       # StudentModal, RecordPaymentModal, ReceiptPreviewModal, StatusBadge
-│   │   ├── pages/            # LoginPage, RegisterPage, DashboardPage, StudentsPage, StudentProfilePage, PaymentsPage, TransactionsPage, SettingsPage
+│   │   ├── pages/            # LoginPage, RegisterPage, DashboardPage, StudentsPage, StudentProfilePage, CoursesPage, SettingsPage
 │   │   ├── layouts/          # AdminLayout (Responsive sidebar & top header)
 │   │   ├── hooks/            # useAuth, useToast
 │   │   ├── services/         # Axios API client & typed service endpoints

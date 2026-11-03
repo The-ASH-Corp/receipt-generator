@@ -179,7 +179,7 @@ export const downloadReceiptPdf = async (req: Request, res: Response): Promise<v
 
     const isDownload = req.query.download === 'true';
     const disposition = isDownload ? 'attachment' : 'inline';
-    const filename = `${payment.receiptNumber}_${payment.studentId}.pdf`;
+    const filename = `${payment.receiptNumber}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `${disposition}; filename="${filename}"`);

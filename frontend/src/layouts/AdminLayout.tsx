@@ -3,8 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  CreditCard,
-  Receipt,
+  BookOpen,
   Settings,
   LogOut,
   Menu,
@@ -16,8 +15,7 @@ import { useAuth } from '../hooks/useAuth';
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/students', label: 'Students', icon: Users, end: false },
-  { to: '/payments', label: 'Payments', icon: CreditCard, end: false },
-  { to: '/transactions', label: 'Transactions', icon: Receipt, end: false },
+  { to: '/courses', label: 'Courses', icon: BookOpen, end: false },
   { to: '/settings', label: 'Settings', icon: Settings, end: false },
 ];
 
@@ -42,7 +40,7 @@ export const AdminLayout: React.FC = () => {
         <div className="flex items-center gap-3 px-6 py-5 border-b border-indigo-900/80">
           <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm shrink-0 overflow-hidden p-1">
             <img
-              src="/ash-academy-logo.svg"
+              src="/ash-academy-logo.png"
               alt="Ash Academy Logo"
               className="w-full h-full object-contain"
             />
@@ -107,7 +105,7 @@ export const AdminLayout: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center overflow-hidden p-0.5">
             <img
-              src="/ash-academy-logo.svg"
+              src="/ash-academy-logo.png"
               alt="Ash Academy Logo"
               className="w-full h-full object-contain"
             />

@@ -8,15 +8,25 @@ export interface AdminUser {
   email: string;
 }
 
+export interface Course {
+  _id: string;
+  name: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Student {
   _id: string;
   studentId: string;
   fullName: string;
-  email: string;
+  email?: string;
   phone: string;
   courseName: string;
   courseDuration: string;
-  courseStartDate: string;
+  classMode?: 'Offline' | 'Online' | 'Hybrid';
+  branch?: 'Calicut' | 'Thirur' | string;
+  paymentMethod?: string;
+  courseStartDate?: string;
   totalCourseFee: number;
   totalAmountPaid: number;
   remainingBalance: number;
@@ -47,6 +57,7 @@ export interface Payment {
   transactionReference?: string;
   remarks?: string;
   allowAdvance?: boolean;
+  branch?: string;
   createdAt?: string;
 }
 
@@ -61,12 +72,25 @@ export interface InstitutionSettings {
   receiptPrefix: string;
   receiptFooterMessage: string;
   currencySymbol: string;
+  selectedBranch?: string;
+  branches?: Record<
+    string,
+    {
+      address?: string;
+      phone?: string;
+      email?: string;
+      website?: string;
+      receiptPrefix?: string;
+      receiptFooterMessage?: string;
+    }
+  >;
   updatedAt?: string;
 }
 
 export interface DashboardData {
   summary: {
     totalStudents: number;
+    totalCourses: number;
     activeStudents: number;
     totalFeesCollected: number;
     pendingFees: number;

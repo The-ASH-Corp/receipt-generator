@@ -2,16 +2,21 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export type PaymentStatusType = 'Paid' | 'Partially Paid' | 'Pending';
 export type StudentStatusType = 'Active' | 'Inactive';
+export type ClassModeType = 'Offline' | 'Online' | 'Hybrid';
+export type BranchType = 'Calicut' | 'Thirur' | string;
 
 export interface IStudent {
   _id: string;
   studentId: string;
   fullName: string;
-  email: string;
+  email?: string;
   phone: string;
   courseName: string;
   courseDuration: string;
-  courseStartDate: string | Date;
+  classMode?: ClassModeType;
+  branch?: BranchType;
+  paymentMethod?: string;
+  courseStartDate?: string | Date;
   totalCourseFee: number;
   totalAmountPaid: number;
   remainingBalance: number;
@@ -40,14 +45,13 @@ const StudentSchema = new Schema<IStudentDocument>(
     },
     email: {
       type: String,
-      required: [true, 'Email address is required'],
+      default: '',
       trim: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address'],
     },
     phone: {
       type: String,
-      required: [true, 'Phone number with country code is required'],
+      required: [true, 'WhatsApp phone number is required'],
       trim: true,
     },
     courseName: {
@@ -60,9 +64,22 @@ const StudentSchema = new Schema<IStudentDocument>(
       required: [true, 'Course duration is required'],
       trim: true,
     },
+    classMode: {
+      type: String,
+      enum: ['Offline', 'Online', 'Hybrid'],
+      default: 'Offline',
+    },
+    branch: {
+      type: String,
+      default: 'Calicut',
+    },
+    paymentMethod: {
+      type: String,
+      default: '',
+    },
     courseStartDate: {
       type: Date,
-      required: [true, 'Course start date is required'],
+      default: Date.now,
     },
     totalCourseFee: {
       type: Number,

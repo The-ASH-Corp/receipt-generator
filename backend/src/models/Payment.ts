@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { PaymentStatusType } from './Student';
 
-export type PaymentMethodType = 'Cash' | 'UPI' | 'Bank Transfer' | 'Card' | 'Other';
+export type PaymentMethodType = 'Cash' | 'Bank' | 'Bank Transfer' | 'UPI' | 'Card' | 'Other' | string;
 
 export interface IPayment {
   _id: string;
@@ -9,7 +9,7 @@ export interface IPayment {
   student: string; // Student _id
   studentId: string; // Unique Student Code e.g. STU-2026-0001
   studentName: string;
-  studentEmail: string;
+  studentEmail?: string;
   studentPhone: string;
   courseName: string;
   amount: number;
@@ -23,6 +23,7 @@ export interface IPayment {
   transactionReference?: string;
   remarks?: string;
   allowAdvance?: boolean;
+  branch?: string;
   createdAt?: string | Date;
 }
 
@@ -59,7 +60,7 @@ const PaymentSchema = new Schema<IPaymentDocument>(
     },
     studentEmail: {
       type: String,
-      required: true,
+      default: '',
       trim: true,
       immutable: true,
     },
@@ -135,6 +136,11 @@ const PaymentSchema = new Schema<IPaymentDocument>(
       type: Boolean,
       default: false,
       immutable: true,
+    },
+    branch: {
+      type: String,
+      default: 'Calicut',
+      trim: true,
     },
   },
   {

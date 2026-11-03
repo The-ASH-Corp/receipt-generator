@@ -1,5 +1,5 @@
 import React from 'react';
-import { PaymentStatus, StudentStatus } from '../types';
+import { PaymentStatus } from '../types';
 
 export const PaymentStatusBadge: React.FC<{ status: PaymentStatus }> = ({ status }) => {
   const styles: Record<PaymentStatus, string> = {
@@ -26,23 +26,4 @@ export const PaymentStatusBadge: React.FC<{ status: PaymentStatus }> = ({ status
   );
 };
 
-export const StudentStatusBadge: React.FC<{ status: StudentStatus }> = ({ status }) => {
-  const isActive = status === 'Active';
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-        isActive
-          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-          : 'bg-slate-100 text-slate-600 border-slate-200'
-      }`}
-    >
-      <span
-        className={`w-1.5 h-1.5 rounded-full ${
-          isActive ? 'bg-indigo-600' : 'bg-slate-400'
-        }`}
-      />
-      {status}
-    </span>
-  );
-};
 

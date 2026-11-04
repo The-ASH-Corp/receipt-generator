@@ -6,6 +6,8 @@ import {
   Filter,
   Eye,
   Edit3,
+  Trash2,
+  AlertTriangle,
   CreditCard,
   Users,
   RotateCcw,
@@ -36,6 +38,8 @@ export const StudentsPage: React.FC = () => {
 
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [paymentStudent, setPaymentStudent] = useState<Student | null>(null);
   const [previewPayment, setPreviewPayment] = useState<Payment | null>(null);
 
@@ -67,6 +71,21 @@ export const StudentsPage: React.FC = () => {
     setSearch('');
     setSelectedCourse('All');
     setSelectedPaymentStatus('All');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingStudent) return;
+    try {
+      setIsDeleting(true);
+      const res = await studentApi.delete(deletingStudent._id);
+      showToast(res.message || 'Student deleted successfully.', 'success');
+      setDeletingStudent(null);
+      fetchStudents();
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Failed to delete student.', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -231,6 +250,13 @@ export const StudentsPage: React.FC = () => {
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
+                        <button
+                          onClick={() => setDeletingStudent(student)}
+                          title="Delete Student"
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -286,6 +312,46 @@ export const StudentsPage: React.FC = () => {
         branch={paymentStudent?.branch || previewPayment?.branch}
         onClose={() => setPreviewPayment(null)}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deletingStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm p-6 space-y-5 animate-in fade-in-0 zoom-in-95">
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-heading text-lg font-bold text-indigo-900">Delete Student</h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  Are you sure you want to delete{' '}
+                  <strong className="text-slate-900">{deletingStudent.fullName}</strong> ({deletingStudent.studentId})?
+                  This will also remove their associated payment records.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDeletingStudent(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-semibold transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

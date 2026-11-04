@@ -3,6 +3,7 @@ import { Save, Building2, Upload, Trash2, MapPin } from 'lucide-react';
 import { settingsApi } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import Select from '../components/Select';
 
 interface BranchDetails {
   address?: string;
@@ -110,7 +111,7 @@ export const SettingsPage: React.FC = () => {
     setReceiptPrefix(nextData.receiptPrefix || 'REC');
     setReceiptFooterMessage(
       nextData.receiptFooterMessage ||
-        'Please note: All payments are final and non-refundable.'
+      'Please note: All payments are final and non-refundable.'
     );
   };
 
@@ -175,7 +176,7 @@ export const SettingsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-indigo-900 tracking-tight">
+        <h1 className="font-heading text-2xl sm:text-3xl font-semibold text-indigo-900 tracking-tight">
           Institution & Receipt Settings
         </h1>
       </div>
@@ -315,16 +316,15 @@ export const SettingsPage: React.FC = () => {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Currency Symbol
               </label>
-              <select
+              <Select
                 value={currencySymbol}
-                onChange={(e) => setCurrencySymbol(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              >
-                <option value="₹">₹ (INR - Indian Rupee)</option>
-                <option value="$">$ (USD - US Dollar)</option>
-                <option value="€">€ (EUR - Euro)</option>
-                <option value="£">£ (GBP - British Pound)</option>
-              </select>
+                onChange={setCurrencySymbol}
+                options={[
+                  { label: "₹ (INR - Indian Rupee)", value: "₹" },
+                  { label: "$ (USD - US Dollar)", value: "$" },
+                ]}
+                className="px-3.5 py-2.5 font-semibold"
+              />
             </div>
 
             <div className="sm:col-span-2">
@@ -372,14 +372,15 @@ export const SettingsPage: React.FC = () => {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
                 Select Branch
               </label>
-              <select
+              <Select
                 value={selectedBranch}
-                onChange={(e) => handleBranchChange(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-2xs"
-              >
-                <option value="Thirur">Thirur Branch</option>
-                <option value="Calicut">Calicut Branch</option>
-              </select>
+                onChange={handleBranchChange}
+                options={[
+                  { label: "Thirur Branch", value: "Thirur" },
+                  { label: "Calicut Branch", value: "Calicut" },
+                ]}
+                className="px-4 py-3 font-bold text-slate-900 shadow-2xs"
+              />
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">

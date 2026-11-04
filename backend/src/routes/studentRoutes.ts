@@ -4,6 +4,7 @@ import {
   getStudentProfile,
   createStudent,
   updateStudent,
+  deleteStudent,
 } from '../controllers/studentController';
 import { protectAdmin } from '../middleware/authMiddleware';
 
@@ -15,6 +16,7 @@ router.get('/', getStudents);
 router.post('/', createStudent);
 router.get('/:id', getStudentProfile);
 router.put('/:id', updateStudent);
+router.delete('/:id', deleteStudent);
 
 export default router;
 

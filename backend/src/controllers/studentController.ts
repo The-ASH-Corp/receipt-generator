@@ -4,6 +4,7 @@ import {
   getStudentById,
   createStudentRecord,
   updateStudentRecord,
+  deleteStudentRecord,
   listPayments,
 } from '../services/dataStore';
 
@@ -238,4 +239,28 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
     });
   }
 };
+
+export const deleteStudent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const deleted = await deleteStudentRecord(id);
+    if (!deleted) {
+      res.status(404).json({
+        success: false,
+        message: 'Student not found.',
+      });
+      return;
+    }
+    res.json({
+      success: true,
+      message: 'Student deleted successfully.',
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err instanceof Error ? err.message : 'Failed to delete student',
+    });
+  }
+};
+
 

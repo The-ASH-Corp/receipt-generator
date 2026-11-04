@@ -326,7 +326,7 @@ export const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
               {/* Amount Box */}
               <div className="flex items-center gap-3">
                 <span className="font-bold text-base text-neutral-900">Amount</span>
-                <div className="border border-neutral-900 px-4 py-1.5 min-w-[100px] text-center font-bold text-lg text-neutral-900">
+                <div className="border border-neutral-900 px-4 py-1.5 min-w-[100px] text-center font-bold text-lg text-neutral-900 whitespace-nowrap">
                   ₹{payment.amount}
                 </div>
               </div>

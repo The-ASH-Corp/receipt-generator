@@ -15,6 +15,7 @@ import { useToast } from '../hooks/useToast';
 import { useAuth } from '../hooks/useAuth';
 import { PaymentStatusBadge } from './StatusBadge';
 import Select from './Select';
+import DatePicker from './DatePicker';
 
 interface RecordPaymentModalProps {
   isOpen: boolean;
@@ -151,10 +152,10 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       const msg =
         err?.response?.data?.message || err?.message || 'Failed to record payment.';
       setError(msg);
-    }  finally {
-    setSubmitting(false);
-    onClose();
-  }
+    } finally {
+      setSubmitting(false);
+      onClose();
+    }
   };
 
   const handleGenerateReceiptDownload = async () => {
@@ -317,29 +318,6 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               </div>
             )}
 
-            {/* Student Selection if not preselected */}
-            {!preselectedStudent && (
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Select Student <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  required
-                  value={selectedStudentId}
-                  onChange={(e) => handleStudentSelect(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                >
-                  <option value="">-- Choose a registered student --</option>
-                  {studentsList.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.fullName} ({s.courseName}) — Bal:{' '}
-                      {formatCurrency(s.remainingBalance, currency)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             {/* Populated Student Details & Live Fee Summary */}
             {activeStudent && (
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-3">
@@ -425,12 +403,11 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                   Payment Date <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="date"
-                  required
+                <DatePicker
                   value={paymentDate}
-                  onChange={(e) => setPaymentDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                  onChange={setPaymentDate}
+                  required
+                  placeholder="Select payment date"
                 />
               </div>
 

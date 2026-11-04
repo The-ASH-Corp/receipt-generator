@@ -6,6 +6,7 @@ import { toInputDate } from '../utils/formatters';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../hooks/useAuth';
 import Select from './Select';
+import DatePicker from './DatePicker';
 
 interface StudentModalProps {
   isOpen: boolean;
@@ -137,22 +138,6 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       setError('Please select a Course.');
       return;
     }
-
-    // const numericFee = Number(totalCourseFee);
-    // if (isNaN(numericFee) || numericFee <= 0) {
-    //   setError('Total Course Fee must be greater than 0.');
-    //   return;
-    // }
-
-    // const numericReceived = Number(receivedAmount) || 0;
-    // if (numericReceived < 0) {
-    //   setError('Received Amount cannot be negative.');
-    //   return;
-    // }
-    // if (numericReceived > numericFee) {
-    //   setError('Received Amount cannot exceed Total Course Fee.');
-    //   return;
-    // }
     const numericFee = Number(totalCourseFee);
     const numericReceived = Number(receivedAmount) || 0;
     if (!isEdit) {
@@ -182,8 +167,6 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       classMode,
       branch,
       paymentMethod: paymentMethods.join(', '),
-      // receivedAmount: numericReceived,
-      // totalCourseFee: numericFee,
       receivedAmount: isEdit
         ? initialStudent?.totalAmountPaid || 0
         : numericReceived,
@@ -257,12 +240,10 @@ export const StudentModal: React.FC<StudentModalProps> = ({
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Date <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="date"
-                required
+              <DatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                onChange={setDate}
+                required
               />
             </div>
 
@@ -296,7 +277,7 @@ export const StudentModal: React.FC<StudentModalProps> = ({
               />
             </div>
 
-          
+
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 Course <span className="text-rose-500">*</span>
@@ -400,7 +381,7 @@ export const StudentModal: React.FC<StudentModalProps> = ({
               </div>
             </div>
 
-           
+
             {!isEdit && (
               <>
                 <div>

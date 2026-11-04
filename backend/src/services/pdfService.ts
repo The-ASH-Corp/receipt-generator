@@ -433,9 +433,9 @@ export const generateReceiptPdfBuffer = (
       doc.font('Helvetica-Bold').fontSize(11).fillColor('#1f2937').text('Amount', amtLabelX, amtBoxY + 5);
       doc.rect(amtBoxX, amtBoxY, amtBoxW, amtBoxH).lineWidth(1).strokeColor('#262626').stroke();
 
-      drawRupeeIcon(doc, amtBoxX + 8, amtBoxY + 6, 11, '#1f2937');
+      drawRupeeIcon(doc, amtBoxX + 10, amtBoxY + 6, 11, '#1f2937');
       const formattedAmt = String(payment.amount ?? 0);
-      doc.font('Helvetica-Bold').fontSize(12).fillColor('#1f2937').text(formattedAmt, amtBoxX + 22, amtBoxY + 5);
+      doc.font('Helvetica-Bold').fontSize(12).fillColor('#1f2937').text(formattedAmt, amtBoxX + 22, amtBoxY + 6);
 
       // Bottom Notice
       const noticeY = boxY + boxH - 22;

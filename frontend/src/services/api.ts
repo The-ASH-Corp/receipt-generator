@@ -112,6 +112,13 @@ export const studentApi = {
     }>(`/students/${id}`, payload);
     return res.data;
   },
+  delete: async (id: string) => {
+    const res = await apiClient.delete<{
+      success: boolean;
+      message: string;
+    }>(`/students/${id}`);
+    return res.data;
+  },
 };
 
 // Payments API

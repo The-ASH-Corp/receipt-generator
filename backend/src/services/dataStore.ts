@@ -561,6 +561,41 @@ export const updateStudentRecord = async (
   });
 };
 
+export const deleteStudentRecord = async (id: string): Promise<boolean> => {
+  return txMutex.runExclusive(async () => {
+    if (isMongoConnected()) {
+      let student = null;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        student = await StudentModel.findById(id);
+      }
+      if (!student) {
+        student = await StudentModel.findOne({ studentId: id });
+      }
+      if (!student) return false;
+
+      const internalId = String(student._id);
+      const studentCode = student.studentId;
+
+      await StudentModel.findByIdAndDelete(internalId);
+      await PaymentModel.deleteMany({
+        $or: [{ student: internalId }, { studentId: studentCode }],
+      });
+      return true;
+    } else {
+      const db = readLocalDB();
+      const idx = db.students.findIndex((s) => s._id === id || s.studentId === id);
+      if (idx === -1) return false;
+      const student = db.students[idx];
+      db.students.splice(idx, 1);
+      db.payments = db.payments.filter(
+        (p) => p.student !== student._id && p.studentId !== student.studentId
+      );
+      writeLocalDB(db);
+      return true;
+    }
+  });
+};
+
 export interface StudentFilterQuery {
   search?: string;
   course?: string;

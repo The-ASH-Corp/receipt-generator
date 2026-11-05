@@ -17,7 +17,7 @@ import { CourseModel, ICourse } from "../models/Course";
 import { CounterModel } from "../models/Counter";
 import {
   calculateFeeBreakdown,
-  formatSequentialCode,
+  formatReceiptNumber,
 } from "../utils/idGenerator";
 
 interface LocalDatabaseSchema {
@@ -84,6 +84,9 @@ const writeLocalDB = (data: LocalDatabaseSchema): void => {
 };
 
 const generateObjectId = (): string => crypto.randomBytes(12).toString("hex");
+
+const getReceiptCounterKey = (branch?: string): string =>
+  `receipt:${branch?.trim().toLowerCase() || "calicut"}`;
 
 export const initializeDefaults = async (): Promise<void> => {
   if (!isMongoConnected()) {
@@ -360,6 +363,7 @@ export const createStudentRecord = async (
     const startDate = input.courseStartDate
       ? new Date(input.courseStartDate)
       : regDate;
+    const branch = input.branch || "Calicut";
 
     let createdStudent: IStudent;
 
@@ -381,7 +385,7 @@ export const createStudentRecord = async (
         courseName: input.courseName.trim(),
         courseDuration: input.courseDuration.trim(),
         classMode: input.classMode || "Offline",
-        branch: input.branch || "Calicut",
+        branch,
         paymentMethod: input.paymentMethod || "",
         courseStartDate: startDate,
         totalCourseFee: breakdown.totalCourseFee,
@@ -403,8 +407,8 @@ export const createStudentRecord = async (
         }
 
         const prefix = settings.receiptPrefix.trim().toUpperCase();
-        const receiptSeq = await getNextSequence("receipt");
-        const receiptNumber = formatSequentialCode(prefix, receiptSeq, regDate);
+        const receiptSeq = await getNextSequence(getReceiptCounterKey(branch));
+        const receiptNumber = formatReceiptNumber(prefix, receiptSeq, branch);
 
         await PaymentModel.create({
           receiptNumber,
@@ -423,7 +427,7 @@ export const createStudentRecord = async (
           paymentDate: regDate,
           paymentMethod: input.paymentMethod || "Cash",
           transactionReference: "Initial Registration Payment",
-          branch: input.branch || createdStudent.branch || "Calicut",
+          branch: createdStudent.branch || branch,
         });
       }
     } else {
@@ -441,7 +445,7 @@ export const createStudentRecord = async (
         courseName: input.courseName.trim(),
         courseDuration: input.courseDuration.trim(),
         classMode: input.classMode || "Offline",
-        branch: input.branch || "Calicut",
+        branch,
         paymentMethod: input.paymentMethod || "",
         courseStartDate: startDate.toISOString(),
         totalCourseFee: breakdown.totalCourseFee,
@@ -465,9 +469,10 @@ export const createStudentRecord = async (
         }
 
         const prefix = settings.receiptPrefix.trim().toUpperCase();
-        const receiptSeq = (db.counters["receipt"] || 0) + 1;
-        db.counters["receipt"] = receiptSeq;
-        const receiptNumber = formatSequentialCode(prefix, receiptSeq, regDate);
+        const counterKey = getReceiptCounterKey(branch);
+        const receiptSeq = (db.counters[counterKey] || 0) + 1;
+        db.counters[counterKey] = receiptSeq;
+        const receiptNumber = formatReceiptNumber(prefix, receiptSeq, branch);
 
         const newPayment: IPayment = {
           _id: generateObjectId(),
@@ -487,7 +492,7 @@ export const createStudentRecord = async (
           paymentDate: regDate.toISOString(),
           paymentMethod: (input.paymentMethod as any) || "Cash",
           transactionReference: "Initial Registration Payment",
-          branch: input.branch || "Calicut",
+          branch,
           createdAt: now,
         };
         db.payments.unshift(newPayment);
@@ -820,11 +825,12 @@ export const recordPaymentTransaction = async (
         );
       }
 
-      const seq = await getNextSequence("receipt");
+      const branch = student.branch || "Calicut";
+      const seq = await getNextSequence(getReceiptCounterKey(branch));
       const paymentDateObj = input.paymentDate
         ? new Date(input.paymentDate)
         : new Date();
-      const receiptNumber = formatSequentialCode(prefix, seq, paymentDateObj);
+      const receiptNumber = formatReceiptNumber(prefix, seq, branch);
 
       const newTotalPaid = Math.round((previousPaid + amount) * 100) / 100;
       const breakdownAfter = calculateFeeBreakdown(
@@ -849,7 +855,7 @@ export const recordPaymentTransaction = async (
         paymentDate: paymentDateObj,
         paymentMethod: input.paymentMethod,
         transactionReference: input.transactionReference?.trim() || "",
-        branch: student.branch || "Calicut",
+        branch,
       });
 
       student.totalAmountPaid = breakdownAfter.totalAmountPaid;
@@ -895,22 +901,20 @@ export const recordPaymentTransaction = async (
         );
       }
 
-      const currentReceiptSeq = db.counters["receipt"] || 0;
+      const branch = student.branch || "Calicut";
+      const counterKey = getReceiptCounterKey(branch);
+      const currentReceiptSeq = db.counters[counterKey] || 0;
       const nextReceiptSeq = currentReceiptSeq + 1;
       const paymentDateObj = input.paymentDate
         ? new Date(input.paymentDate)
         : new Date();
-      const receiptNumber = formatSequentialCode(
-        prefix,
-        nextReceiptSeq,
-        paymentDateObj,
-      );
+      const receiptNumber = formatReceiptNumber(prefix, nextReceiptSeq, branch);
 
       if (db.payments.some((p) => p.receiptNumber === receiptNumber)) {
         throw new Error(`Duplicate receipt number detected: ${receiptNumber}`);
       }
 
-      db.counters["receipt"] = nextReceiptSeq;
+      db.counters[counterKey] = nextReceiptSeq;
 
       const newTotalPaid = Math.round((previousPaid + amount) * 100) / 100;
       const breakdownAfter = calculateFeeBreakdown(
@@ -937,7 +941,7 @@ export const recordPaymentTransaction = async (
         paymentDate: paymentDateObj.toISOString(),
         paymentMethod: input.paymentMethod,
         transactionReference: input.transactionReference?.trim() || "",
-        branch: student.branch || "Calicut",
+        branch,
         createdAt: nowIso,
       };
 

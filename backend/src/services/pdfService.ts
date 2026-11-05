@@ -355,40 +355,6 @@ export const generateReceiptPdfBuffer = (
       // Violet Horizontal Divider Bar (#7c3aed)
       doc.rect(boxX, boxY + 68, boxW, 2.5).fill('#7c3aed');
 
-      // --- Body Section ---
-      // const bodyY = boxY + 100;
-      // const label1 = 'Received from Mr/Ms';
-      // const studentNameUpper = (payment.studentName || '').toUpperCase();
-
-      // doc.font('Helvetica-Bold').fontSize(10).fillColor('#1f2937').text(label1 + '  ', boxX + 25, bodyY, { continued: true });
-      // doc.font('Helvetica-Bold').text(studentNameUpper + ' ');
-      // const nameWidth = doc.widthOfString(label1 + '  ' + studentNameUpper + ' ');
-      // const dotsStartX1 = boxX + 25 + nameWidth;
-      // const dotsEndX = boxX + boxW - 25;
-
-      // doc.save().dash(1.5, { space: 2.5 }).lineWidth(0.8).strokeColor('#6b7280');
-      // doc.moveTo(dotsStartX1, bodyY + 9).lineTo(dotsEndX, bodyY + 9).stroke();
-      // doc.restore();
-
-      // const bodyY2 = bodyY + 25;
-      // const label2 = 'for the course';
-      // const courseName = payment.courseName || '';
-
-      // doc.font('Helvetica-Bold').fontSize(10).fillColor('#1f2937').text(label2 + '  ', boxX + 25, bodyY2, { continued: true });
-      // doc.font('Helvetica-Bold').text(courseName + ' ');
-      // const courseWidth = doc.widthOfString(label2 + '  ' + courseName + ' ');
-      // const dotsStartX2 = boxX + 25 + courseWidth;
-
-      // doc.save().dash(1.5, { space: 2.5 }).lineWidth(0.8).strokeColor('#6b7280');
-      // doc.moveTo(dotsStartX2, bodyY2 + 9).lineTo(dotsEndX, bodyY2 + 9).stroke();
-      // doc.restore();
-
-
-
-
-
-
-
 
       // --- Student Name ---
       const bodyY = boxY + 100;

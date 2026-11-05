@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   X,
   CreditCard,
@@ -7,15 +7,15 @@ import {
   FileText,
   AlertCircle,
   Sparkles,
-} from 'lucide-react';
-import { Payment, PaymentMethod, Student } from '../types';
-import { paymentApi, studentApi } from '../services/api';
-import { formatCurrency, toInputDate } from '../utils/formatters';
-import { useToast } from '../hooks/useToast';
-import { useAuth } from '../hooks/useAuth';
-import { PaymentStatusBadge } from './StatusBadge';
-import Select from './Select';
-import DatePicker from './DatePicker';
+} from "lucide-react";
+import { Payment, PaymentMethod, Student } from "../types";
+import { paymentApi, studentApi } from "../services/api";
+import { formatCurrency, toInputDate } from "../utils/formatters";
+import { useToast } from "../hooks/useToast";
+import { useAuth } from "../hooks/useAuth";
+import { PaymentStatusBadge } from "./StatusBadge";
+import Select from "./Select";
+import DatePicker from "./DatePicker";
 
 interface RecordPaymentModalProps {
   isOpen: boolean;
@@ -26,11 +26,11 @@ interface RecordPaymentModalProps {
 }
 
 const PAYMENT_METHODS: PaymentMethod[] = [
-  'UPI',
-  'Bank Transfer',
-  'Card',
-  'Cash',
-  'Other',
+  "UPI",
+  "Bank Transfer",
+  "Card",
+  "Cash",
+  "Other",
 ];
 
 export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
@@ -42,16 +42,16 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 }) => {
   const { showToast } = useToast();
   const { settings } = useAuth();
-  const currency = settings.currencySymbol || '₹';
+  const currency = settings.currencySymbol || "₹";
 
   const [studentsList, setStudentsList] = useState<Student[]>([]);
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [activeStudent, setActiveStudent] = useState<Student | null>(null);
 
-  const [amount, setAmount] = useState<string>('');
+  const [amount, setAmount] = useState<string>("");
   const [paymentDate, setPaymentDate] = useState<string>(toInputDate());
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
-  const [transactionReference, setTransactionReference] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("UPI");
+  const [transactionReference, setTransactionReference] = useState<string>("");
 
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [downloading, setDownloading] = useState<boolean>(false);
@@ -66,8 +66,8 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
     setError(null);
     setRecordedResult(null);
     setPaymentDate(toInputDate());
-    setPaymentMethod('UPI');
-    setTransactionReference('');
+    setPaymentMethod("UPI");
+    setTransactionReference("");
 
     if (preselectedStudent) {
       setActiveStudent(preselectedStudent);
@@ -75,47 +75,35 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       setAmount(
         preselectedStudent.remainingBalance > 0
           ? String(preselectedStudent.remainingBalance)
-          : ''
+          : "",
       );
     } else {
       setActiveStudent(null);
-      setSelectedStudentId('');
-      setAmount('');
+      setSelectedStudentId("");
+      setAmount("");
       studentApi.list().then((res) => {
         setStudentsList(res.students);
       });
     }
   }, [isOpen, preselectedStudent]);
 
-  const handleStudentSelect = (id: string) => {
-    setSelectedStudentId(id);
-    const found = studentsList.find((s) => s._id === id) || null;
-    setActiveStudent(found);
-    if (found && found.remainingBalance > 0) {
-      setAmount(String(found.remainingBalance));
-    } else {
-      setAmount('');
-    }
-  };
-
   if (!isOpen) return null;
 
   const numericAmount = Number(amount) || 0;
   const exceedsBalance =
-    activeStudent !== null &&
-    numericAmount > activeStudent.remainingBalance
+    activeStudent !== null && numericAmount > activeStudent.remainingBalance;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!activeStudent) {
-      setError('Please select a student first.');
+      setError("Please select a student first.");
       return;
     }
 
     if (numericAmount <= 0) {
-      setError('Payment amount must be greater than zero.');
+      setError("Payment amount must be greater than zero.");
       return;
     }
 
@@ -123,11 +111,11 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       setError(
         `Payment amount (${formatCurrency(
           numericAmount,
-          currency
+          currency,
         )}) exceeds remaining balance (${formatCurrency(
           activeStudent.remainingBalance,
-          currency
-        )}).`
+          currency,
+        )}).`,
       );
       return;
     }
@@ -145,13 +133,15 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       setRecordedResult(res.data);
       showToast(
         `Payment recorded! Receipt ${res.data.payment.receiptNumber} is ready.`,
-        'success'
+        "success",
       );
       onPaymentSuccess(res.data.payment, res.data.student);
     } catch (err: any) {
       const msg =
-        err?.response?.data?.message || err?.message || 'Failed to record payment.';
-      setError(msg);
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to record payment.";
+      showToast(msg, "error");
     } finally {
       setSubmitting(false);
       onClose();
@@ -164,14 +154,14 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       setDownloading(true);
       await paymentApi.downloadReceiptPdf(
         recordedResult.payment._id,
-        recordedResult.payment.receiptNumber
+        recordedResult.payment.receiptNumber,
       );
       showToast(
         `Downloaded PDF Receipt ${recordedResult.payment.receiptNumber}`,
-        'success'
+        "success",
       );
     } catch {
-      showToast('Failed to download PDF receipt.', 'error');
+      showToast("Failed to download PDF receipt.", "error");
     } finally {
       setDownloading(false);
     }
@@ -188,12 +178,14 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-bold">
-                {recordedResult ? 'Payment Recorded Successfully' : 'Record Fee Payment'}
+                {recordedResult
+                  ? "Payment Recorded Successfully"
+                  : "Record Fee Payment"}
               </h2>
               <p className="text-xs text-indigo-200">
                 {recordedResult
                   ? `Official Receipt No: ${recordedResult.payment.receiptNumber}`
-                  : ''}
+                  : ""}
               </p>
             </div>
           </div>
@@ -219,13 +211,15 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 {formatCurrency(recordedResult.payment.amount, currency)}
               </h3>
               <p className="text-sm text-slate-600 mt-1">
-                Received from{' '}
+                Received from{" "}
                 <span className="font-semibold text-slate-900">
                   {recordedResult.payment.studentName}
                 </span>
               </p>
               <div className="mt-3">
-                <PaymentStatusBadge status={recordedResult.student.paymentStatus} />
+                <PaymentStatusBadge
+                  status={recordedResult.student.paymentStatus}
+                />
               </div>
             </div>
 
@@ -240,23 +234,34 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               <div className="flex justify-between text-slate-600">
                 <span>Total Course Fee:</span>
                 <span className="font-medium text-slate-900">
-                  {formatCurrency(recordedResult.student.totalCourseFee, currency)}
+                  {formatCurrency(
+                    recordedResult.student.totalCourseFee,
+                    currency,
+                  )}
                 </span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Previous Amount Paid:</span>
                 <span className="font-medium text-slate-900">
-                  {formatCurrency(recordedResult.payment.previousAmountPaid, currency)}
+                  {formatCurrency(
+                    recordedResult.payment.previousAmountPaid,
+                    currency,
+                  )}
                 </span>
               </div>
               <div className="flex justify-between text-indigo-700 font-semibold">
                 <span>Current Payment:</span>
-                <span>+{formatCurrency(recordedResult.payment.amount, currency)}</span>
+                <span>
+                  +{formatCurrency(recordedResult.payment.amount, currency)}
+                </span>
               </div>
               <div className="border-t border-slate-200 pt-2 flex justify-between font-bold text-slate-900">
                 <span>Total Amount Paid:</span>
                 <span className="text-emerald-700">
-                  {formatCurrency(recordedResult.student.totalAmountPaid, currency)}
+                  {formatCurrency(
+                    recordedResult.student.totalAmountPaid,
+                    currency,
+                  )}
                 </span>
               </div>
               <div className="flex justify-between font-bold text-slate-900">
@@ -264,11 +269,14 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 <span
                   className={
                     recordedResult.student.remainingBalance === 0
-                      ? 'text-emerald-700'
-                      : 'text-amber-700'
+                      ? "text-emerald-700"
+                      : "text-amber-700"
                   }
                 >
-                  {formatCurrency(recordedResult.student.remainingBalance, currency)}
+                  {formatCurrency(
+                    recordedResult.student.remainingBalance,
+                    currency,
+                  )}
                 </span>
               </div>
             </div>
@@ -282,7 +290,9 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white text-sm font-semibold shadow-sm transition-colors"
               >
                 <Download className="w-4 h-4" />
-                {downloading ? 'Generating PDF...' : 'Generate Receipt (Download PDF)'}
+                {downloading
+                  ? "Generating PDF..."
+                  : "Generate Receipt (Download PDF)"}
               </button>
               {onPreviewReceipt && (
                 <button
@@ -323,17 +333,25 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-xs text-slate-500 block">Student Name</span>
-                    <span className="font-bold text-slate-900">{activeStudent.fullName}</span>
+                    <span className="text-xs text-slate-500 block">
+                      Student Name
+                    </span>
+                    <span className="font-bold text-slate-900">
+                      {activeStudent.fullName}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-xs text-slate-500 block">WhatsApp Phone</span>
+                    <span className="text-xs text-slate-500 block">
+                      WhatsApp Phone
+                    </span>
                     <span className="font-medium text-slate-800">
                       {activeStudent.phone}
                     </span>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-xs text-slate-500 block">Course Enrolled</span>
+                    <span className="text-xs text-slate-500 block">
+                      Course Enrolled
+                    </span>
                     <span className="font-medium text-slate-800">
                       {activeStudent.courseName}
                     </span>
@@ -374,12 +392,15 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                    Payment Amount ({currency}) <span className="text-rose-500">*</span>
+                    Payment Amount ({currency}){" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   {activeStudent && activeStudent.remainingBalance > 0 && (
                     <button
                       type="button"
-                      onClick={() => setAmount(String(activeStudent.remainingBalance))}
+                      onClick={() =>
+                        setAmount(String(activeStudent.remainingBalance))
+                      }
                       className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1"
                     >
                       <Sparkles className="w-3 h-3" /> Full Balance
@@ -429,7 +450,8 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               {/* Transaction Reference */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Transaction Reference <span className="text-slate-400">(Optional)</span>
+                  Transaction Reference{" "}
+                  <span className="text-slate-400">(Optional)</span>
                 </label>
                 <input
                   type="text"
@@ -442,14 +464,15 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             </div>
 
             {/* Advance Payment Opt-in if amount > remainingBalance */}
-            {activeStudent && numericAmount > activeStudent.remainingBalance && (
-              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
-                <p className="text-xs text-amber-800 font-medium">
-                  Entered amount {formatCurrency(numericAmount, currency)} exceeds the
-                  student's remaining balance.
-                </p>
-              </div>
-            )}
+            {activeStudent &&
+              numericAmount > activeStudent.remainingBalance && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+                  <p className="text-xs text-amber-800 font-medium">
+                    Entered amount {formatCurrency(numericAmount, currency)}{" "}
+                    exceeds the student's remaining balance.
+                  </p>
+                </div>
+              )}
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
               <button
                 type="button"
@@ -464,7 +487,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white text-sm font-semibold shadow-xs disabled:opacity-50 transition-colors"
               >
                 <CreditCard className="w-4 h-4" />
-                {submitting ? 'Recording Payment...' : 'Record Payment'}
+                {submitting ? "Recording Payment..." : "Record Payment"}
               </button>
             </div>
           </form>
@@ -473,4 +496,3 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
     </div>
   );
 };
-

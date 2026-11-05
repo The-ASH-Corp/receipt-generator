@@ -55,7 +55,7 @@ student-fee-manager/
 3. **Fee Payment Management & Data Integrity**:
    - Server-side fee calculation from immutable payment records (`Total Course Fee`, `Total Amount Paid`, `Remaining Balance`, and `Paid` / `Partially Paid` / `Pending` status).
    - Prevents overpayments exceeding the remaining balance unless explicitly authorized as an advance payment.
-   - Atomic sequence generation for unique receipt numbers (`REC-2026-0001`).
+   - Atomic sequence generation for unique receipt numbers (`e51000`).
 4. **Professional PDF Fee Receipt Generation**:
    - Powered by **PDFKit** on the backend (`GET /api/payments/:id/receipt`).
    - Includes Institution Header, Logo/Crest, Contact Info, Unique Receipt Number, Student & Course Info, Fee Summary Table (`Total Course Fee`, `Previous Amount Paid`, `Current Payment`, `Total Amount Paid`, `Remaining Balance`), Payment Acknowledgement, Institution Stamp Seal, Authorized Signature, and customizable Footer Message.

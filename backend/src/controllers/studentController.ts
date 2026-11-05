@@ -73,6 +73,7 @@ export const getStudentProfile = async (req: Request, res: Response): Promise<vo
 export const createStudent = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
+      studentId,
       fullName,
       email,
       phone,
@@ -90,6 +91,14 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
 
     if (!fullName || !String(fullName).trim()) {
       res.status(400).json({ success: false, message: 'Student Name is required.' });
+      return;
+    }
+
+    if (!studentId || !String(studentId).trim()) {
+      res.status(400).json({
+        success: false,
+        message: 'Admission Number is required.',
+      });
       return;
     }
 
@@ -148,6 +157,7 @@ export const createStudent = async (req: Request, res: Response): Promise<void> 
     const regDate = registrationDate || new Date().toISOString();
 
     const student = await createStudentRecord({
+       studentId: String(studentId).trim(),
       fullName: String(fullName),
       email: email ? String(email).trim() : '',
       phone: cleanPhone,
@@ -180,6 +190,7 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
     const {
+      studentId,
       fullName,
       email,
       phone,
@@ -205,6 +216,7 @@ export const updateStudent = async (req: Request, res: Response): Promise<void> 
     const cleanPhone = phone !== undefined ? String(phone).trim() : undefined;
 
     const updated = await updateStudentRecord(id, {
+      studentId,
       fullName,
       email,
       phone: cleanPhone,

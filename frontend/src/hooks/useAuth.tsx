@@ -20,7 +20,7 @@ const DEFAULT_FRONTEND_SETTINGS: InstitutionSettings = {
   phone: '+91 8921365750',
   email: 'connect@ashacademy.ai',
   website: 'www.ashacademy.ai',
-  receiptPrefix: 'REC',
+  receiptPrefix: 'e',
   receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
   currencySymbol: '₹',
   selectedBranch: 'Thirur',
@@ -30,7 +30,7 @@ const DEFAULT_FRONTEND_SETTINGS: InstitutionSettings = {
       phone: '+91 8921365750',
       email: 'connect@ashacademy.ai',
       website: 'www.ashacademy.ai',
-      receiptPrefix: 'REC',
+      receiptPrefix: 'e',
       receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
     },
     Calicut: {
@@ -38,7 +38,7 @@ const DEFAULT_FRONTEND_SETTINGS: InstitutionSettings = {
       phone: '+91 8921365750',
       email: 'connect@ashacademy.ai',
       website: 'www.ashacademy.ai',
-      receiptPrefix: 'REC',
+      receiptPrefix: 'e',
       receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
     },
   },
@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshSettings = useCallback(async () => {
     try {
       const data = await settingsApi.get();
-      setSettings(data);
+      setSettings(data ?? DEFAULT_FRONTEND_SETTINGS);
     } catch {
       // Keep default settings if unauthenticated
     }
@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(result.token);
     setAdmin(result.admin);
     const inst = await settingsApi.get();
-    setSettings(inst);
+    setSettings(inst ?? DEFAULT_FRONTEND_SETTINGS);
   };
 
   const login = async (email: string, password: string) => {
@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(result.token);
     setAdmin(result.admin);
     const inst = await settingsApi.get();
-    setSettings(inst);
+    setSettings(inst ?? DEFAULT_FRONTEND_SETTINGS);
   };
 
   const logout = () => {

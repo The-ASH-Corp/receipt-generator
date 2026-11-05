@@ -6,8 +6,8 @@ export type PaymentMethodType = 'Cash' | 'Bank' | 'Bank Transfer' | 'UPI' | 'Car
 export interface IPayment {
   _id: string;
   receiptNumber: string;
-  student: string; // Student _id
-  studentId: string; // Unique Student Code e.g. STU-2026-0001
+  student: string;
+  studentId: string; 
   studentName: string;
   studentEmail?: string;
   studentPhone: string;
@@ -21,8 +21,6 @@ export interface IPayment {
   paymentDate: string | Date;
   paymentMethod: PaymentMethodType;
   transactionReference?: string;
-  remarks?: string;
-  allowAdvance?: boolean;
   branch?: string;
   createdAt?: string | Date;
 }
@@ -124,17 +122,6 @@ const PaymentSchema = new Schema<IPaymentDocument>(
       type: String,
       trim: true,
       default: '',
-      immutable: true,
-    },
-    remarks: {
-      type: String,
-      trim: true,
-      default: '',
-      immutable: true,
-    },
-    allowAdvance: {
-      type: Boolean,
-      default: false,
       immutable: true,
     },
     branch: {

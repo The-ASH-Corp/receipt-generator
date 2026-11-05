@@ -60,8 +60,6 @@ export const recordPayment = async (req: Request, res: Response): Promise<void> 
       paymentDate: paymentDate || new Date().toISOString(),
       paymentMethod,
       transactionReference,
-      remarks,
-      allowAdvance: Boolean(allowAdvance),
     });
 
     res.status(201).json({
@@ -175,6 +173,13 @@ export const downloadReceiptPdf = async (req: Request, res: Response): Promise<v
     }
 
     const settings = await getInstitutionSettings();
+    if (!settings) {
+      res.status(500).json({
+        success: false,
+        message: 'Institution settings not configured. Please configure settings first.',
+      });
+      return;
+    }
     const pdfBuffer = await generateReceiptPdfBuffer(payment, settings);
 
     const isDownload = req.query.download === 'true';

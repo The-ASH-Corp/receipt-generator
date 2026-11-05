@@ -49,7 +49,7 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
     if (!receiptPrefix || !String(receiptPrefix).trim()) {
       res.status(400).json({
         success: false,
-        message: 'Receipt prefix is required (e.g., REC).',
+        message: 'Receipt prefix is required (e.g., e).',
       });
       return;
     }

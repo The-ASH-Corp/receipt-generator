@@ -49,7 +49,7 @@ export const getDashboardSummary = async (_req: Request, res: Response): Promise
           totalCourseFeeExpected,
           totalTransactions,
           statusBreakdown,
-          currencySymbol: settings.currencySymbol || '₹',
+          currencySymbol: settings?.currencySymbol || '₹',
         },
         recentPayments,
         recentStudents,

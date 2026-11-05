@@ -9,7 +9,6 @@ import {
   Download,
   Eye,
   FileText,
-  RefreshCw,
 } from 'lucide-react';
 import { DashboardData, Payment, Student } from '../types';
 import { dashboardApi, paymentApi } from '../services/api';
@@ -152,8 +151,8 @@ export const DashboardPage: React.FC = () => {
               {formatCurrency(summary?.pendingFees || 0, currency)}
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              {summary?.statusBreakdown.partiallyPaid || 0} partial &bull;{' '}
-              {summary?.statusBreakdown.pending || 0} pending
+              {summary?.statusBreakdown?.partiallyPaid || 0} partial &bull;{' '}
+              {summary?.statusBreakdown?.pending || 0} pending
             </p>
           </div>
         </div>

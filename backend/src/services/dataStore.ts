@@ -6,7 +6,6 @@ import { isMongoConnected } from '../config/db';
 import {
   StudentModel,
   IStudent,
-  PaymentStatusType,
   StudentStatusType,
   ClassModeType,
   BranchType,
@@ -22,7 +21,7 @@ interface LocalDatabaseSchema {
   students: IStudent[];
   payments: IPayment[];
   courses?: ICourse[];
-  settings: ISettings;
+  settings?: ISettings;
   admins: IAdmin[];
   counters: Record<string, number>;
 }
@@ -35,7 +34,7 @@ class AsyncMutex {
   private queue: Promise<void> = Promise.resolve();
 
   async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
-    let release: () => void = () => {};
+    let release: () => void = () => { };
     const prev = this.queue;
     this.queue = new Promise<void>((resolve) => {
       release = resolve;
@@ -51,36 +50,36 @@ class AsyncMutex {
 
 const txMutex = new AsyncMutex();
 
-const DEFAULT_SETTINGS: ISettings = {
-  academyName: 'ASH ACADEMY',
-  academyLogo: '/ash-academy-logo.png',
-  address: '2nd Floor, OPS Mall, Vailathur,Tirur',
-  phone: '+91 8921365750',
-  email: 'connect@ashacademy.ai',
-  website: 'www.ashacademy.ai',
-  receiptPrefix: 'e',
-  receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
-  currencySymbol: '₹',
-  selectedBranch: 'Thirur',
-  branches: {
-    Thirur: {
-      address: '2nd Floor, OPS Mall, Vailathur,Tirur',
-      phone: '+91 8921365750',
-      email: 'connect@ashacademy.ai',
-      website: 'www.ashacademy.ai',
-      receiptPrefix: 'e',
-      receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
-    },
-    Calicut: {
-      address: 'Calicut, Kerala',
-      phone: '+91 8921365750',
-      email: 'connect@ashacademy.ai',
-      website: 'www.ashacademy.ai',
-      receiptPrefix: 'e',
-      receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
-    },
-  },
-};
+// const DEFAULT_SETTINGS: ISettings = {
+//   academyName: 'ASH ACADEMY',
+//   academyLogo: '/ash-academy-logo.png',
+//   address: '2nd Floor, OPS Mall, Vailathur,Tirur',
+//   phone: '+91 8921365750',
+//   email: 'connect@ashacademy.ai',
+//   website: 'www.ashacademy.ai',
+//   receiptPrefix: 'e',
+//   receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
+//   currencySymbol: '₹',
+//   selectedBranch: 'Thirur',
+//   branches: {
+//     Thirur: {
+//       address: '2nd Floor, OPS Mall, Vailathur,Tirur',
+//       phone: '+91 8921365750',
+//       email: 'connect@ashacademy.ai',
+//       website: 'www.ashacademy.ai',
+//       receiptPrefix: 'e',
+//       receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
+//     },
+//     Calicut: {
+//       address: 'Hilite Business Park, Palazhi, Calicut, Pantheeramkav, Kerala',
+//       phone: '+91 8921365750',
+//       email: 'connect@ashacademy.ai',
+//       website: 'www.ashacademy.ai',
+//       receiptPrefix: 'e',
+//       receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
+//     },
+//   },
+// };
 
 const readLocalDB = (): LocalDatabaseSchema => {
   if (!fs.existsSync(DATA_DIR)) {
@@ -90,7 +89,7 @@ const readLocalDB = (): LocalDatabaseSchema => {
     const initial: LocalDatabaseSchema = {
       students: [],
       payments: [],
-      settings: { ...DEFAULT_SETTINGS },
+      // settings: { ...DEFAULT_SETTINGS },
       admins: [],
       counters: {
         student: 0,
@@ -115,45 +114,59 @@ const writeLocalDB = (data: LocalDatabaseSchema): void => {
 
 const generateObjectId = (): string => crypto.randomBytes(12).toString('hex');
 
+// export const initializeDefaults = async (): Promise<void> => {
+//   const defaultCourses = [
+//     'Full Stack Web Development Bootcamp',
+//     'Data Science & Machine Learning',
+//     'UI/UX Product Design Mastery',
+//     'Cloud Architecture & DevOps',
+//   ];
+
+//   if (isMongoConnected()) {
+//     const existingSettings = await SettingsModel.findOne();
+//     if (!existingSettings) {
+//       await SettingsModel.create(DEFAULT_SETTINGS);
+//     }
+
+//     const courseCount = await CourseModel.countDocuments();
+//     if (courseCount === 0) {
+//       for (const name of defaultCourses) {
+//         await CourseModel.create({ name });
+//       }
+//     }
+//   } else {
+//     await txMutex.runExclusive(async () => {
+//       const db = readLocalDB();
+//       if (!db.settings || !db.settings.academyName) {
+//         db.settings = { ...DEFAULT_SETTINGS };
+//       }
+//       if (!db.courses || db.courses.length === 0) {
+//         const now = new Date().toISOString();
+//         db.courses = defaultCourses.map((name) => ({
+//           _id: generateObjectId(),
+//           name,
+//           createdAt: now,
+//           updatedAt: now,
+//         }));
+//       }
+//       writeLocalDB(db);
+//     });
+//   }
+// };
+
+
+
 export const initializeDefaults = async (): Promise<void> => {
-  const defaultCourses = [
-    'Full Stack Web Development Bootcamp',
-    'Data Science & Machine Learning',
-    'UI/UX Product Design Mastery',
-    'Cloud Architecture & DevOps',
-  ];
-
-  if (isMongoConnected()) {
-    const existingSettings = await SettingsModel.findOne();
-    if (!existingSettings) {
-      await SettingsModel.create(DEFAULT_SETTINGS);
-    }
-
-    const courseCount = await CourseModel.countDocuments();
-    if (courseCount === 0) {
-      for (const name of defaultCourses) {
-        await CourseModel.create({ name });
-      }
-    }
-  } else {
+  if (!isMongoConnected()) {
     await txMutex.runExclusive(async () => {
-      const db = readLocalDB();
-      if (!db.settings || !db.settings.academyName) {
-        db.settings = { ...DEFAULT_SETTINGS };
-      }
-      if (!db.courses || db.courses.length === 0) {
-        const now = new Date().toISOString();
-        db.courses = defaultCourses.map((name) => ({
-          _id: generateObjectId(),
-          name,
-          createdAt: now,
-          updatedAt: now,
-        }));
-      }
-      writeLocalDB(db);
+      readLocalDB(); // Only initialize the local database file
     });
   }
 };
+
+
+
+
 
 // Next sequence generator (atomic)
 const getNextSequence = async (key: string): Promise<number> => {
@@ -230,64 +243,191 @@ export const createAdminRecord = async (input: {
 };
 
 // Settings
-export const getInstitutionSettings = async (): Promise<ISettings> => {
+// export const getInstitutionSettings = async (): Promise<ISettings> => {
+//   if (isMongoConnected()) {
+//     const doc = await SettingsModel.findOne().lean();
+//     if (!doc) {
+//       const created = await SettingsModel.create(DEFAULT_SETTINGS);
+//       const obj = created.toObject();
+//       return { ...DEFAULT_SETTINGS, ...obj, _id: String(obj._id) };
+//     }
+//     return { ...DEFAULT_SETTINGS, ...doc, _id: String(doc._id) };
+//   } else {
+//     const db = readLocalDB();
+//     return db.settings || { ...DEFAULT_SETTINGS };
+//   }
+// };
+
+export const getInstitutionSettings = async (): Promise<ISettings | null> => {
   if (isMongoConnected()) {
     const doc = await SettingsModel.findOne().lean();
-    if (!doc) {
-      const created = await SettingsModel.create(DEFAULT_SETTINGS);
-      const obj = created.toObject();
-      return { ...DEFAULT_SETTINGS, ...obj, _id: String(obj._id) };
-    }
-    return { ...DEFAULT_SETTINGS, ...doc, _id: String(doc._id) };
-  } else {
-    const db = readLocalDB();
-    return db.settings || { ...DEFAULT_SETTINGS };
+
+    if (!doc) return null;
+
+    return {
+      ...doc,
+      _id: String(doc._id),
+    } as ISettings;
   }
+
+  const db = readLocalDB();
+  return db.settings || null;
 };
+
+// export const updateInstitutionSettings = async (
+//   updates: Partial<ISettings>
+// ): Promise<ISettings> => {
+//   return txMutex.runExclusive(async () => {
+//     // const cleanUpdates: Partial<ISettings> = {
+//     //   academyName: updates.academyName?.trim() || DEFAULT_SETTINGS.academyName,
+//     //   academyLogo: updates.academyLogo !== undefined ? updates.academyLogo : '',
+//     //   address: updates.address?.trim() || DEFAULT_SETTINGS.address,
+//     //   phone: updates.phone?.trim() || DEFAULT_SETTINGS.phone,
+//     //   email: updates.email?.trim() || DEFAULT_SETTINGS.email,
+//     //   website: updates.website?.trim() ?? DEFAULT_SETTINGS.website,
+//     //   receiptPrefix: (updates.receiptPrefix?.trim() || 'e').toUpperCase(),
+//     //   receiptFooterMessage:
+//     //     updates.receiptFooterMessage?.trim() || DEFAULT_SETTINGS.receiptFooterMessage,
+//     //   currencySymbol: updates.currencySymbol?.trim() || '₹',
+//     //   selectedBranch: updates.selectedBranch || 'Thirur',
+//     //   branches: updates.branches || DEFAULT_SETTINGS.branches,
+//     //   updatedAt: new Date().toISOString(),
+//     // };
+//     const cleanUpdates: Partial<ISettings> = {
+//       ...(updates.academyName !== undefined && {
+//         academyName: updates.academyName.trim(),
+//       }),
+//       ...(updates.academyLogo !== undefined && {
+//         academyLogo: updates.academyLogo,
+//       }),
+//       ...(updates.address !== undefined && {
+//         address: updates.address.trim(),
+//       }),
+//       ...(updates.phone !== undefined && {
+//         phone: updates.phone.trim(),
+//       }),
+//       ...(updates.email !== undefined && {
+//         email: updates.email.trim(),
+//       }),
+//       ...(updates.website !== undefined && {
+//         website: updates.website.trim(),
+//       }),
+//       ...(updates.receiptPrefix !== undefined && {
+//         receiptPrefix: updates.receiptPrefix.trim().toUpperCase(),
+//       }),
+//       ...(updates.receiptFooterMessage !== undefined && {
+//         receiptFooterMessage: updates.receiptFooterMessage.trim(),
+//       }),
+//       ...(updates.currencySymbol !== undefined && {
+//         currencySymbol: updates.currencySymbol.trim(),
+//       }),
+//       ...(updates.selectedBranch !== undefined && {
+//         selectedBranch: updates.selectedBranch,
+//       }),
+//       ...(updates.branches !== undefined && {
+//         branches: updates.branches,
+//       }),
+//       updatedAt: new Date().toISOString(),
+//     };
+
+//     if (isMongoConnected()) {
+//       const existing = await SettingsModel.findOne();
+//       if (existing) {
+//         Object.assign(existing, cleanUpdates);
+//         await existing.save();
+//         return { ...existing.toObject(), _id: String(existing._id) };
+//       } else {
+//         const created = await SettingsModel.create(cleanUpdates);
+//         return { ...created.toObject(), _id: String(created._id) };
+//       }
+//     } else {
+//       const db = readLocalDB();
+//       db.settings = {
+//         ...db.settings,
+//         ...cleanUpdates,
+//       };
+//       writeLocalDB(db);
+//       return db.settings;
+//     }
+//   });
+// };
+
+// Recompute student fee totals strictly from immutable payment records
 
 export const updateInstitutionSettings = async (
   updates: Partial<ISettings>
 ): Promise<ISettings> => {
   return txMutex.runExclusive(async () => {
     const cleanUpdates: Partial<ISettings> = {
-      academyName: updates.academyName?.trim() || DEFAULT_SETTINGS.academyName,
-      academyLogo: updates.academyLogo !== undefined ? updates.academyLogo : '',
-      address: updates.address?.trim() || DEFAULT_SETTINGS.address,
-      phone: updates.phone?.trim() || DEFAULT_SETTINGS.phone,
-      email: updates.email?.trim() || DEFAULT_SETTINGS.email,
-      website: updates.website?.trim() ?? DEFAULT_SETTINGS.website,
-      receiptPrefix: (updates.receiptPrefix?.trim() || 'REC').toUpperCase(),
-      receiptFooterMessage:
-        updates.receiptFooterMessage?.trim() || DEFAULT_SETTINGS.receiptFooterMessage,
-      currencySymbol: updates.currencySymbol?.trim() || '₹',
-      selectedBranch: updates.selectedBranch || 'Thirur',
-      branches: updates.branches || DEFAULT_SETTINGS.branches,
+      ...(updates.academyName !== undefined && {
+        academyName: updates.academyName.trim(),
+      }),
+      ...(updates.academyLogo !== undefined && {
+        academyLogo: updates.academyLogo,
+      }),
+      ...(updates.address !== undefined && {
+        address: updates.address.trim(),
+      }),
+      ...(updates.phone !== undefined && {
+        phone: updates.phone.trim(),
+      }),
+      ...(updates.email !== undefined && {
+        email: updates.email.trim(),
+      }),
+      ...(updates.website !== undefined && {
+        website: updates.website.trim(),
+      }),
+      ...(updates.receiptPrefix !== undefined && {
+        receiptPrefix: updates.receiptPrefix.trim().toUpperCase(),
+      }),
+      ...(updates.receiptFooterMessage !== undefined && {
+        receiptFooterMessage: updates.receiptFooterMessage.trim(),
+      }),
+      ...(updates.currencySymbol !== undefined && {
+        currencySymbol: updates.currencySymbol.trim(),
+      }),
+      ...(updates.selectedBranch !== undefined && {
+        selectedBranch: updates.selectedBranch,
+      }),
+      ...(updates.branches !== undefined && {
+        branches: updates.branches,
+      }),
       updatedAt: new Date().toISOString(),
     };
 
     if (isMongoConnected()) {
-      const existing = await SettingsModel.findOne();
-      if (existing) {
-        Object.assign(existing, cleanUpdates);
-        await existing.save();
-        return { ...existing.toObject(), _id: String(existing._id) };
+      let existing = await SettingsModel.findOne();
+
+      if (!existing) {
+        existing = new SettingsModel(cleanUpdates);
       } else {
-        const created = await SettingsModel.create(cleanUpdates);
-        return { ...created.toObject(), _id: String(created._id) };
+        Object.assign(existing, cleanUpdates);
       }
-    } else {
-      const db = readLocalDB();
-      db.settings = {
-        ...db.settings,
-        ...cleanUpdates,
-      };
-      writeLocalDB(db);
-      return db.settings;
+
+      await existing.save();
+
+      return {
+        ...existing.toObject(),
+        _id: String(existing._id),
+      } as ISettings;
     }
+
+    const db = readLocalDB();
+
+    db.settings = {
+      ...(db.settings || {}),
+      ...cleanUpdates,
+    } as ISettings;
+
+    writeLocalDB(db);
+
+    return db.settings;
   });
 };
 
-// Recompute student fee totals strictly from immutable payment records
+
+
+
 const recomputeStudentBalance = async (studentInternalId: string): Promise<IStudent | null> => {
   if (isMongoConnected()) {
     const student = await StudentModel.findById(studentInternalId);
@@ -322,6 +462,7 @@ const recomputeStudentBalance = async (studentInternalId: string): Promise<IStud
 
 // Students CRUD
 export interface CreateStudentInput {
+  studentId: string;
   fullName: string;
   email?: string;
   phone: string;
@@ -339,8 +480,26 @@ export interface CreateStudentInput {
 
 export const createStudentRecord = async (input: CreateStudentInput): Promise<IStudent> => {
   return txMutex.runExclusive(async () => {
-    const seq = await getNextSequence('student');
-    const studentId = formatSequentialCode('STU', seq, new Date());
+    const studentId = input.studentId.trim();
+
+    if (!studentId) {
+      throw new Error('Admission Number is required.');
+    }
+    if (isMongoConnected()) {
+      const existingStudent = await StudentModel.findOne({ studentId });
+
+      if (existingStudent) {
+        throw new Error('A student with this Admission Number already exists.');
+      }
+    } else {
+      const db = readLocalDB();
+
+      if (db.students.some(
+        (student) => student.studentId.toLowerCase() === studentId.toLowerCase()
+      )) {
+        throw new Error('A student with this Admission Number already exists.');
+      }
+    }
     const fee = Math.round(Number(input.totalCourseFee) * 100) / 100;
     const initialPaid = Math.max(
       0,
@@ -354,6 +513,15 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
     let createdStudent: IStudent;
 
     if (isMongoConnected()) {
+      const settings = await getInstitutionSettings();
+
+      if (!settings?.receiptPrefix?.trim()) {
+        throw new Error(
+          'Please configure the receipt prefix in Institution Settings before recording payments.'
+        );
+      }
+
+      const prefix = settings.receiptPrefix.trim();
       const created = await StudentModel.create({
         studentId,
         fullName: input.fullName.trim(),
@@ -376,7 +544,14 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
 
       if (initialPaid > 0) {
         const settings = await getInstitutionSettings();
-        const prefix = settings.receiptPrefix || 'REC';
+        // const prefix = settings.receiptPrefix || 'e';
+        if (!settings?.receiptPrefix?.trim()) {
+          throw new Error(
+            'Please configure the receipt prefix in Institution Settings before recording payments.'
+          );
+        }
+
+        const prefix = settings.receiptPrefix.trim().toUpperCase();
         const receiptSeq = await getNextSequence('receipt');
         const receiptNumber = formatSequentialCode(prefix, receiptSeq, regDate);
 
@@ -397,8 +572,6 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
           paymentDate: regDate,
           paymentMethod: input.paymentMethod || 'Cash',
           transactionReference: 'Initial Registration Payment',
-          remarks: 'Payment received at registration',
-          allowAdvance: false,
           branch: input.branch || createdStudent.branch || 'Calicut',
         });
       }
@@ -432,8 +605,15 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
       db.students.unshift(newStudent);
 
       if (initialPaid > 0) {
-        const settings = db.settings || DEFAULT_SETTINGS;
-        const prefix = settings.receiptPrefix || 'REC';
+        const settings = await getInstitutionSettings();
+
+        if (!settings?.receiptPrefix?.trim()) {
+          throw new Error(
+            'Please configure the receipt prefix in Institution Settings before recording payments.'
+          );
+        }
+
+        const prefix = settings.receiptPrefix.trim().toUpperCase();
         const receiptSeq = (db.counters['receipt'] || 0) + 1;
         db.counters['receipt'] = receiptSeq;
         const receiptNumber = formatSequentialCode(prefix, receiptSeq, regDate);
@@ -456,8 +636,6 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
           paymentDate: regDate.toISOString(),
           paymentMethod: (input.paymentMethod as any) || 'Cash',
           transactionReference: 'Initial Registration Payment',
-          remarks: 'Payment received at registration',
-          allowAdvance: false,
           branch: input.branch || 'Calicut',
           createdAt: now,
         };
@@ -496,6 +674,20 @@ export const updateStudentRecord = async (
       if (updates.fullName !== undefined) student.fullName = updates.fullName.trim();
       if (updates.email !== undefined) student.email = updates.email.toLowerCase().trim();
       if (updates.phone !== undefined) student.phone = updates.phone.trim();
+      if (updates.studentId !== undefined) {
+        const cleanStudentId = String(updates.studentId ?? '').trim();
+
+        const duplicate = await StudentModel.findOne({
+          studentId: cleanStudentId,
+          _id: { $ne: student._id },
+        });
+
+        if (duplicate) {
+          throw new Error('A student with this Admission Number already exists.');
+        }
+
+        student.studentId = cleanStudentId;
+      }
       if (updates.courseName !== undefined) student.courseName = updates.courseName.trim();
       if (updates.courseDuration !== undefined)
         student.courseDuration = updates.courseDuration.trim();
@@ -547,6 +739,20 @@ export const updateStudentRecord = async (
       if (updates.registrationDate !== undefined)
         student.registrationDate = new Date(updates.registrationDate).toISOString();
       if (updates.status !== undefined) student.status = updates.status;
+      if (updates.studentId !== undefined) {
+        const cleanStudentId = String(updates.studentId ?? '').trim();
+        const duplicate = db.students.some(
+          (s, i) =>
+            i !== idx &&
+            s.studentId.toLowerCase() === cleanStudentId.toLowerCase()
+        );
+
+        if (duplicate) {
+          throw new Error('A student with this Admission Number already exists.');
+        }
+
+        student.studentId = cleanStudentId;
+      }
 
       const breakdown = calculateFeeBreakdown(student.totalCourseFee, totalPaid);
       student.totalAmountPaid = breakdown.totalAmountPaid;
@@ -664,13 +870,11 @@ export const getStudentById = async (id: string): Promise<IStudent | null> => {
 
 // Payments & Immutable Transaction Recording
 export interface RecordPaymentInput {
-  studentId: string; // Can be _id or studentId code (STU-...)
+  studentId: string;
   amount: number;
   paymentDate?: string | Date;
   paymentMethod: PaymentMethodType;
   transactionReference?: string;
-  remarks?: string;
-  allowAdvance?: boolean;
 }
 
 export const recordPaymentTransaction = async (
@@ -683,7 +887,12 @@ export const recordPaymentTransaction = async (
     }
 
     const settings = await getInstitutionSettings();
-    const prefix = settings.receiptPrefix || 'REC';
+    if (!settings?.receiptPrefix?.trim()) {
+      throw new Error(
+        'Please configure the receipt prefix in Institution Settings before recording payments.'
+      );
+    }
+    const prefix = settings.receiptPrefix.trim().toUpperCase();
 
     if (isMongoConnected()) {
       let student = null;
@@ -708,7 +917,7 @@ export const recordPaymentTransaction = async (
         Math.round((student.totalCourseFee - previousPaid) * 100) / 100
       );
 
-      if (!input.allowAdvance && amount > currentRemaining) {
+      if (amount > currentRemaining) {
         throw new Error(
           `Payment amount (${amount}) exceeds remaining balance (${currentRemaining}). Enable advance payment if intentional.`
         );
@@ -738,8 +947,6 @@ export const recordPaymentTransaction = async (
         paymentDate: paymentDateObj,
         paymentMethod: input.paymentMethod,
         transactionReference: input.transactionReference?.trim() || '',
-        remarks: input.remarks?.trim() || '',
-        allowAdvance: Boolean(input.allowAdvance),
         branch: student.branch || 'Calicut',
       });
 
@@ -772,7 +979,7 @@ export const recordPaymentTransaction = async (
         Math.round((student.totalCourseFee - previousPaid) * 100) / 100
       );
 
-      if (!input.allowAdvance && amount > currentRemaining) {
+      if (amount > currentRemaining) {
         throw new Error(
           `Payment amount (${amount}) exceeds the remaining balance (${currentRemaining}).`
         );
@@ -811,8 +1018,6 @@ export const recordPaymentTransaction = async (
         paymentDate: paymentDateObj.toISOString(),
         paymentMethod: input.paymentMethod,
         transactionReference: input.transactionReference?.trim() || '',
-        remarks: input.remarks?.trim() || '',
-        allowAdvance: Boolean(input.allowAdvance),
         branch: student.branch || 'Calicut',
         createdAt: nowIso,
       };

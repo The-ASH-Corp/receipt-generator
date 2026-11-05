@@ -356,32 +356,136 @@ export const generateReceiptPdfBuffer = (
       doc.rect(boxX, boxY + 68, boxW, 2.5).fill('#7c3aed');
 
       // --- Body Section ---
+      // const bodyY = boxY + 100;
+      // const label1 = 'Received from Mr/Ms';
+      // const studentNameUpper = (payment.studentName || '').toUpperCase();
+
+      // doc.font('Helvetica-Bold').fontSize(10).fillColor('#1f2937').text(label1 + '  ', boxX + 25, bodyY, { continued: true });
+      // doc.font('Helvetica-Bold').text(studentNameUpper + ' ');
+      // const nameWidth = doc.widthOfString(label1 + '  ' + studentNameUpper + ' ');
+      // const dotsStartX1 = boxX + 25 + nameWidth;
+      // const dotsEndX = boxX + boxW - 25;
+
+      // doc.save().dash(1.5, { space: 2.5 }).lineWidth(0.8).strokeColor('#6b7280');
+      // doc.moveTo(dotsStartX1, bodyY + 9).lineTo(dotsEndX, bodyY + 9).stroke();
+      // doc.restore();
+
+      // const bodyY2 = bodyY + 25;
+      // const label2 = 'for the course';
+      // const courseName = payment.courseName || '';
+
+      // doc.font('Helvetica-Bold').fontSize(10).fillColor('#1f2937').text(label2 + '  ', boxX + 25, bodyY2, { continued: true });
+      // doc.font('Helvetica-Bold').text(courseName + ' ');
+      // const courseWidth = doc.widthOfString(label2 + '  ' + courseName + ' ');
+      // const dotsStartX2 = boxX + 25 + courseWidth;
+
+      // doc.save().dash(1.5, { space: 2.5 }).lineWidth(0.8).strokeColor('#6b7280');
+      // doc.moveTo(dotsStartX2, bodyY2 + 9).lineTo(dotsEndX, bodyY2 + 9).stroke();
+      // doc.restore();
+
+
+
+
+
+
+
+
+      // --- Student Name ---
       const bodyY = boxY + 100;
       const label1 = 'Received from Mr/Ms';
       const studentNameUpper = (payment.studentName || '').toUpperCase();
 
-      doc.font('Helvetica-Bold').fontSize(10).fillColor('#1f2937').text(label1 + '  ', boxX + 25, bodyY, { continued: true });
-      doc.font('Helvetica-Bold').text(studentNameUpper + ' ');
-      const nameWidth = doc.widthOfString(label1 + '  ' + studentNameUpper + ' ');
-      const dotsStartX1 = boxX + 25 + nameWidth;
+      doc.font('Helvetica-Bold').fontSize(10).fillColor('#1f2937');
+
+      const labelX = boxX + 25;
+      const labelWidth = doc.widthOfString(label1 + '  ');
+      const nameX = labelX + labelWidth;
+      const nameWidth = doc.widthOfString(studentNameUpper);
       const dotsEndX = boxX + boxW - 25;
 
-      doc.save().dash(1.5, { space: 2.5 }).lineWidth(0.8).strokeColor('#6b7280');
-      doc.moveTo(dotsStartX1, bodyY + 9).lineTo(dotsEndX, bodyY + 9).stroke();
+      // Draw label
+      doc.text(label1, labelX, bodyY, { lineBreak: false });
+
+      // Draw dotted line below the text
+      const nameLineY = bodyY + 13;
+
+      doc.save();
+      doc.dash(1.5, { space: 2.5 })
+        .lineWidth(0.8)
+        .strokeColor('#6b7280')
+        .moveTo(nameX, nameLineY)
+        .lineTo(dotsEndX, nameLineY)
+        .stroke();
       doc.restore();
 
+      // Draw name above the dotted line
+      doc.save();
+      doc.rect(nameX - 2, bodyY - 1, nameWidth + 5, 13).fill('#ffffff');
+
+      doc.font('Helvetica-Bold')
+        .fontSize(10)
+        .fillColor('#1f2937')
+        .text(studentNameUpper, nameX, bodyY, {
+          lineBreak: false,
+        });
+      doc.restore();
+
+
+      // --- Course Name ---
       const bodyY2 = bodyY + 25;
       const label2 = 'for the course';
-      const courseName = payment.courseName || '';
+      const courseName = (payment.courseName || '').toUpperCase();
 
-      doc.font('Helvetica-Bold').fontSize(10).fillColor('#1f2937').text(label2 + '  ', boxX + 25, bodyY2, { continued: true });
-      doc.font('Helvetica-Bold').text(courseName + ' ');
-      const courseWidth = doc.widthOfString(label2 + '  ' + courseName + ' ');
-      const dotsStartX2 = boxX + 25 + courseWidth;
+      doc.font('Helvetica-Bold').fontSize(10).fillColor('#1f2937');
 
-      doc.save().dash(1.5, { space: 2.5 }).lineWidth(0.8).strokeColor('#6b7280');
-      doc.moveTo(dotsStartX2, bodyY2 + 9).lineTo(dotsEndX, bodyY2 + 9).stroke();
+      const courseLabelWidth = doc.widthOfString(label2 + '  ');
+      const courseX = labelX + courseLabelWidth;
+      const courseWidth = doc.widthOfString(courseName);
+
+      // Draw label
+      doc.text(label2, labelX, bodyY2, { lineBreak: false });
+
+      // Draw dotted line below the text
+      const courseLineY = bodyY2 + 13;
+
+      doc.save();
+      doc.dash(1.5, { space: 2.5 })
+        .lineWidth(0.8)
+        .strokeColor('#6b7280')
+        .moveTo(courseX, courseLineY)
+        .lineTo(dotsEndX, courseLineY)
+        .stroke();
       doc.restore();
+
+      // Draw course name above the dotted line
+      doc.save();
+      doc.rect(courseX - 2, bodyY2 - 1, courseWidth + 5, 13).fill('#ffffff');
+
+      doc.font('Helvetica-Bold')
+        .fontSize(10)
+        .fillColor('#1f2937')
+        .text(courseName, courseX, bodyY2, {
+          lineBreak: false,
+        });
+      doc.restore();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       // --- Payment Method Checkboxes & Stamp & Amount ---
       const methodStr = (payment.paymentMethod || '').toLowerCase();

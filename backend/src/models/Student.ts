@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export type PaymentStatusType = 'Paid' | 'Partially Paid' | 'Pending';
 export type StudentStatusType = 'Active' | 'Inactive';
-export type ClassModeType = 'Offline' | 'Online' | 'Hybrid';
+export type ClassModeType = 'Offline' | 'Online' | 'Hybrid' | 'Recorded';
 export type BranchType = 'Calicut' | 'Thirur' | string;
 
 export interface IStudent {
@@ -66,7 +66,7 @@ const StudentSchema = new Schema<IStudentDocument>(
     },
     classMode: {
       type: String,
-      enum: ['Offline', 'Online', 'Hybrid'],
+      enum: ['Offline', 'Online', 'Hybrid', 'Recorded'],
       default: 'Offline',
     },
     branch: {

@@ -14,41 +14,18 @@ interface BranchDetails {
   receiptFooterMessage?: string;
 }
 
-const DEFAULT_BRANCHES: Record<string, BranchDetails> = {
-  Thirur: {
-    address: '2nd Floor, OPS Mall, Vailathur,Tirur',
-    phone: '+91 8921365750',
-    email: 'connect@ashacademy.ai',
-    website: 'www.ashacademy.ai',
-    receiptPrefix: 'REC',
-    receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
-  },
-  Calicut: {
-    address: 'Calicut, Kerala',
-    phone: '+91 8921365750',
-    email: 'connect@ashacademy.ai',
-    website: 'www.ashacademy.ai',
-    receiptPrefix: 'REC',
-    receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
-  },
-};
 
 export const SettingsPage: React.FC = () => {
   const { settings, refreshSettings } = useAuth();
   const { showToast } = useToast();
 
   const [selectedBranch, setSelectedBranch] = useState<string>(
-    settings.selectedBranch || 'Thirur'
+    settings.selectedBranch || ''
   );
-
-  const [branches, setBranches] = useState<Record<string, BranchDetails>>(() => {
-    return settings.branches && Object.keys(settings.branches).length > 0
-      ? settings.branches
-      : DEFAULT_BRANCHES;
-  });
-
-  const activeBranchData =
-    branches[selectedBranch] || DEFAULT_BRANCHES[selectedBranch] || DEFAULT_BRANCHES.Thirur;
+  const [branches, setBranches] = useState<Record<string, BranchDetails>>(
+    settings.branches || {}
+  );
+  const activeBranchData = branches[selectedBranch] || {};
 
   const [academyName, setAcademyName] = useState(settings.academyName);
   const [academyLogo, setAcademyLogo] = useState(settings.academyLogo);
@@ -93,26 +70,20 @@ export const SettingsPage: React.FC = () => {
         phone,
         email,
         website,
-        receiptPrefix: receiptPrefix.toUpperCase().trim(),
+        receiptPrefix: receiptPrefix.trim(),
         receiptFooterMessage,
       },
     };
     setBranches(updatedBranches);
     setSelectedBranch(newBranch);
 
-    // Switch form values to target branch
-    const nextData =
-      updatedBranches[newBranch] || DEFAULT_BRANCHES[newBranch] || DEFAULT_BRANCHES.Thirur;
-
+    const nextData = updatedBranches[newBranch] || {};
     setAddress(nextData.address || '');
     setPhone(nextData.phone || '');
     setEmail(nextData.email || '');
     setWebsite(nextData.website || '');
-    setReceiptPrefix(nextData.receiptPrefix || 'REC');
-    setReceiptFooterMessage(
-      nextData.receiptFooterMessage ||
-      'Please note: All payments are final and non-refundable.'
-    );
+    setReceiptPrefix(nextData.receiptPrefix || '');
+    setReceiptFooterMessage(nextData.receiptFooterMessage || 'All payments are final and non-refundable.');
   };
 
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,7 +113,7 @@ export const SettingsPage: React.FC = () => {
           phone,
           email,
           website,
-          receiptPrefix: receiptPrefix.toUpperCase().trim(),
+          receiptPrefix: receiptPrefix.trim(),
           receiptFooterMessage,
         },
       };
@@ -155,7 +126,7 @@ export const SettingsPage: React.FC = () => {
         phone,
         email,
         website,
-        receiptPrefix: receiptPrefix.toUpperCase().trim(),
+        receiptPrefix: receiptPrefix.trim(),
         receiptFooterMessage,
         currencySymbol,
         selectedBranch,
@@ -302,14 +273,11 @@ export const SettingsPage: React.FC = () => {
                 type="text"
                 required
                 maxLength={8}
-                placeholder="REC"
+                placeholder="e"
                 value={receiptPrefix}
-                onChange={(e) => setReceiptPrefix(e.target.value.toUpperCase())}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-sm font-bold uppercase focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                onChange={(e) => setReceiptPrefix(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
-              <span className="text-[11px] text-slate-500 mt-1 block">
-                Example: {receiptPrefix || 'REC'}-{new Date().getFullYear()}-0001
-              </span>
             </div>
 
             <div>

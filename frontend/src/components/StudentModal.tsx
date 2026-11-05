@@ -15,13 +15,6 @@ interface StudentModalProps {
   initialStudent?: Student | null;
 }
 
-const DEFAULT_COURSES = [
-  'Full Stack Web Development Bootcamp',
-  'Data Science & Machine Learning',
-  'UI/UX Product Design Mastery',
-  'Cloud Architecture & DevOps',
-];
-
 export const StudentModal: React.FC<StudentModalProps> = ({
   isOpen,
   onClose,
@@ -31,19 +24,20 @@ export const StudentModal: React.FC<StudentModalProps> = ({
   const { showToast } = useToast();
   const { settings } = useAuth();
   const isEdit = Boolean(initialStudent);
-
   const [date, setDate] = useState(toInputDate());
   const [fullName, setFullName] = useState('');
+  const [studentId, setStudentId] = useState('');
+  const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [courseName, setCourseName] = useState('');
   const [courseDuration, setCourseDuration] = useState('6 Months');
-  const [classMode, setClassMode] = useState<'Offline' | 'Online' | 'Hybrid'>('Offline');
+  const [classMode, setClassMode] = useState<'Offline' | 'Online' | 'Hybrid' | 'Recorded'>('Offline');
   const [branch, setBranch] = useState<'Calicut' | 'Thirur'>('Calicut');
   const [paymentMethods, setPaymentMethods] = useState<string[]>(['Cash']);
   const [totalCourseFee, setTotalCourseFee] = useState('');
   const [receivedAmount, setReceivedAmount] = useState('');
 
-  const [courseOptions, setCourseOptions] = useState<string[]>(DEFAULT_COURSES);
+  const [courseOptions, setCourseOptions] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,23 +48,19 @@ export const StudentModal: React.FC<StudentModalProps> = ({
     courseApi
       .list()
       .then((data) => {
-        if (data && data.length > 0) {
-          const names = data.map((c) => c.name);
-          setCourseOptions(names);
-          if (!initialStudent && !courseName) {
-            setCourseName(names[0]);
-          }
-        } else {
-          setCourseOptions(DEFAULT_COURSES);
-          if (!initialStudent && !courseName) {
-            setCourseName(DEFAULT_COURSES[0]);
-          }
+        const names = data.map((c) => c.name);
+        setCourseOptions(names);
+
+        if (!initialStudent && names.length > 0) {
+          setCourseName(names[0]);
         }
       })
       .catch(() => {
-        setCourseOptions(DEFAULT_COURSES);
+        setCourseOptions([]);
+        showToast('Failed to load courses.', 'error');
       });
-  }, [isOpen, initialStudent, courseName]);
+  }, [isOpen, initialStudent, showToast]);
+
 
   useEffect(() => {
     if (!isOpen) return;
@@ -81,11 +71,11 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       setFullName(initialStudent.fullName);
       setPhoneNumber(initialStudent.phone);
       setCourseName(initialStudent.courseName);
-      setCourseDuration(
-        initialStudent.courseDuration === '1 Year' ? '1 Year' : '6 Months'
-      );
+      setStudentId(initialStudent.studentId || '');
+      setEmail(initialStudent.email || '');
+      setCourseDuration(initialStudent.courseDuration || '6 Months');
       setClassMode(
-        (initialStudent.classMode as 'Offline' | 'Online' | 'Hybrid') || 'Offline'
+        (initialStudent.classMode as 'Offline' | 'Online' | 'Hybrid' | 'Recorded') || 'Offline'
       );
       setBranch((initialStudent.branch as 'Calicut' | 'Thirur') || 'Calicut');
 
@@ -101,7 +91,9 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       setDate(toInputDate());
       setFullName('');
       setPhoneNumber('');
-      setCourseName(courseOptions[0] || 'Full Stack Web Development Bootcamp');
+      setCourseName('');
+      setStudentId('');
+      setEmail('');
       setCourseDuration('6 Months');
       setClassMode('Offline');
       setBranch('Calicut');
@@ -127,13 +119,11 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       setError('Student Name is required.');
       return;
     }
-
     const cleanPhone = phoneNumber.trim();
-    if (!cleanPhone || cleanPhone.replace(/[\s-]/g, '').length < 8) {
-      setError('Please enter a valid WhatsApp Number (at least 8 digits).');
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setError('Please enter a valid 10-digit Indian mobile number.');
       return;
     }
-
     if (!courseName) {
       setError('Please select a Course.');
       return;
@@ -163,6 +153,8 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       fullName: fullName.trim(),
       phone: cleanPhone,
       courseName: courseName.trim(),
+      studentId: studentId.trim(),
+      email: email.trim(),
       courseDuration,
       classMode,
       branch,
@@ -261,20 +253,61 @@ export const StudentModal: React.FC<StudentModalProps> = ({
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
             </div>
+            {/* Admission Number */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                Admission Number <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Enter Admission Number"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </div>
 
-            {/* 3. WhatsApp Number */}
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="Enter email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              />
+            </div>
+
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                 WhatsApp Number <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="tel"
-                required
-                placeholder="e.g. 9876543210"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"
-              />
+              <div className="flex w-full rounded-xl border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-600">
+                <span className="inline-flex items-center px-3.5 bg-slate-50 border-r border-slate-300 text-sm font-medium text-slate-600">
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  required
+                  maxLength={10}
+                  minLength={10}
+                  pattern="[6-9][0-9]{9}"
+                  placeholder="Enter 10 digit number"
+                  value={phoneNumber}
+                  // onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (value.length <= 10) {
+                      setPhoneNumber(value);
+                    }
+                  }}
+                  className="w-full px-3.5 py-2.5 text-sm focus:outline-none"
+                />
+              </div>
             </div>
 
 
@@ -326,12 +359,13 @@ export const StudentModal: React.FC<StudentModalProps> = ({
                 required
                 value={classMode}
                 onChange={(value) =>
-                  setClassMode(value as 'Offline' | 'Online' | 'Hybrid')
+                  setClassMode(value as 'Offline' | 'Online' | 'Hybrid' | 'Recorded')
                 }
                 options={[
                   { label: 'Offline', value: 'Offline' },
                   { label: 'Online', value: 'Online' },
                   { label: 'Hybrid', value: 'Hybrid' },
+                  { label: 'Recorded', value: 'Recorded' },
                 ]}
               />
             </div>

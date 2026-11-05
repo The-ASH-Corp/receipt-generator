@@ -8,13 +8,11 @@ import {
   Edit3,
   Trash2,
   AlertTriangle,
-  CreditCard,
   Users,
-  RotateCcw,
 } from 'lucide-react';
 import { Payment, Student } from '../types';
 import { studentApi } from '../services/api';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatCurrency } from '../utils/formatters';
 import { PaymentStatusBadge } from '../components/StatusBadge';
 import { StudentModal } from '../components/StudentModal';
 import { RecordPaymentModal } from '../components/RecordPaymentModal';
@@ -67,11 +65,6 @@ export const StudentsPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [fetchStudents]);
 
-  const handleResetFilters = () => {
-    setSearch('');
-    setSelectedCourse('All');
-    setSelectedPaymentStatus('All');
-  };
 
   const handleConfirmDelete = async () => {
     if (!deletingStudent) return;
@@ -325,7 +318,7 @@ export const StudentsPage: React.FC = () => {
                 <h3 className="font-heading text-lg font-bold text-indigo-900">Delete Student</h3>
                 <p className="text-sm text-slate-600 mt-1">
                   Are you sure you want to delete{' '}
-                  <strong className="text-slate-900">{deletingStudent.fullName}</strong> ({deletingStudent.studentId})?
+                  <strong className="text-slate-900">{deletingStudent.fullName}</strong>?
                   This will also remove their associated payment records.
                 </p>
               </div>

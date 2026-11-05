@@ -2,7 +2,7 @@ import { PaymentStatusType } from '../models/Student';
 
 export const formatSequentialCode = (prefix: string, seq: number, date?: Date): string => {
   const year = (date || new Date()).getFullYear();
-  const cleanPrefix = (prefix || 'REC').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const cleanPrefix = (prefix || 'e').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   const paddedSeq = String(seq).padStart(4, '0');
   return `${cleanPrefix}-${year}-${paddedSeq}`;
 };

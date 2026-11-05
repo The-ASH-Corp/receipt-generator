@@ -12,7 +12,6 @@ import {
   Download,
   FileText,
   Receipt,
-  CheckCircle2,
   MapPin,
   Laptop,
 } from 'lucide-react';
@@ -89,7 +88,7 @@ export const StudentProfilePage: React.FC = () => {
           to="/students"
           className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 hover:text-indigo-900"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Students Directory
+          <ArrowLeft className="w-4 h-4" /> Back to Students
         </Link>
       </div>
     );
@@ -113,7 +112,7 @@ export const StudentProfilePage: React.FC = () => {
           </Link>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-indigo-900 tracking-tight">
+              <h1 className="font-heading text-2xl sm:text-3xl font-semibold text-indigo-900 tracking-tight">
                 {student.fullName}
               </h1>
             </div>
@@ -131,7 +130,7 @@ export const StudentProfilePage: React.FC = () => {
             <Edit3 className="w-4 h-4 text-slate-600" />
             <span>Edit Student</span>
           </button>
-         </div>
+        </div>
       </div>
 
       {/* Fee Information Cards (Section 5 Requirements) */}
@@ -163,9 +162,8 @@ export const StudentProfilePage: React.FC = () => {
             Remaining Balance
           </span>
           <span
-            className={`text-2xl font-extrabold mt-2 block ${
-              student.remainingBalance === 0 ? 'text-emerald-700' : 'text-amber-700'
-            }`}
+            className={`text-2xl font-extrabold mt-2 block ${student.remainingBalance === 0 ? 'text-emerald-700' : 'text-amber-700'
+              }`}
           >
             {formatCurrency(student.remainingBalance, currency)}
           </span>
@@ -192,7 +190,7 @@ export const StudentProfilePage: React.FC = () => {
 
       {/* Student Details Card */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-6">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4">
           Enrollment & Personal Information
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-sm">
@@ -258,6 +256,18 @@ export const StudentProfilePage: React.FC = () => {
             </div>
           </div>
 
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs text-slate-500 block">Admission Number</span>
+              <span className="font-semibold text-slate-900">
+                {student.studentId || '—'}
+              </span>
+            </div>
+          </div>
+
           {student.email ? (
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
@@ -279,7 +289,7 @@ export const StudentProfilePage: React.FC = () => {
             <h2 className="font-heading text-base font-bold text-indigo-900">
               Student Payment History
             </h2>
-            </div>
+          </div>
           <button
             onClick={() => setIsPaymentModalOpen(true)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-bold transition-colors self-start sm:self-auto"

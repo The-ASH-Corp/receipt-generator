@@ -63,10 +63,11 @@ export const dashboardApi = {
 export interface StudentPayload {
   fullName: string;
   email?: string;
+  studentId: string;
   phone: string;
   courseName: string;
   courseDuration: string;
-  classMode?: 'Offline' | 'Online' | 'Hybrid';
+  classMode?: 'Offline' | 'Online' | 'Hybrid' | 'Recorded';
   branch?: 'Calicut' | 'Thirur' | string;
   paymentMethod?: string;
   receivedAmount?: number;
@@ -223,7 +224,10 @@ export const courseApi = {
 // Settings API
 export const settingsApi = {
   get: async () => {
-    const res = await apiClient.get<{ success: boolean; data: InstitutionSettings }>('/settings');
+    const res = await apiClient.get<{
+      success: boolean;
+      data: InstitutionSettings | null;
+    }>('/settings');
     return res.data.data;
   },
   update: async (payload: Partial<InstitutionSettings>) => {
@@ -235,4 +239,3 @@ export const settingsApi = {
     return res.data;
   },
 };
-

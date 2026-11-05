@@ -1,23 +1,26 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import {
   recordPaymentTransaction,
   listPayments,
   getPaymentByIdOrReceipt,
   getInstitutionSettings,
   listStudents,
-} from '../services/dataStore';
-import { PaymentMethodType } from '../models/Payment';
-import { generateReceiptPdfBuffer } from '../services/pdfService';
+} from "../services/dataStore";
+import { PaymentMethodType } from "../models/Payment";
+import { generateReceiptPdfBuffer } from "../services/pdfService";
 
 const VALID_METHODS: PaymentMethodType[] = [
-  'Cash',
-  'UPI',
-  'Bank Transfer',
-  'Card',
-  'Other',
+  "Cash",
+  "UPI",
+  "Bank Transfer",
+  "Card",
+  "Other",
 ];
 
-export const recordPayment = async (req: Request, res: Response): Promise<void> => {
+export const recordPayment = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const {
       studentId,
@@ -30,7 +33,7 @@ export const recordPayment = async (req: Request, res: Response): Promise<void> 
     if (!studentId || !String(studentId).trim()) {
       res.status(400).json({
         success: false,
-        message: 'Student selection is required to record a payment.',
+        message: "Student selection is required to record a payment.",
       });
       return;
     }
@@ -39,7 +42,7 @@ export const recordPayment = async (req: Request, res: Response): Promise<void> 
     if (isNaN(numericAmount) || numericAmount <= 0) {
       res.status(400).json({
         success: false,
-        message: 'Payment amount must be greater than zero.',
+        message: "Payment amount must be greater than zero.",
       });
       return;
     }
@@ -47,7 +50,7 @@ export const recordPayment = async (req: Request, res: Response): Promise<void> 
     if (!paymentMethod || !VALID_METHODS.includes(paymentMethod)) {
       res.status(400).json({
         success: false,
-        message: `Invalid payment method. Allowed: ${VALID_METHODS.join(', ')}`,
+        message: `Invalid payment method. Allowed: ${VALID_METHODS.join(", ")}`,
       });
       return;
     }
@@ -68,12 +71,15 @@ export const recordPayment = async (req: Request, res: Response): Promise<void> 
   } catch (err) {
     res.status(400).json({
       success: false,
-      message: err instanceof Error ? err.message : 'Failed to record payment',
+      message: err instanceof Error ? err.message : "Failed to record payment",
     });
   }
 };
 
-export const getTransactions = async (req: Request, res: Response): Promise<void> => {
+export const getTransactions = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const {
       studentId,
@@ -87,13 +93,15 @@ export const getTransactions = async (req: Request, res: Response): Promise<void
 
     const [transactions, allStudents] = await Promise.all([
       listPayments({
-        studentId: typeof studentId === 'string' ? studentId : undefined,
-        search: typeof search === 'string' ? search : undefined,
-        course: typeof course === 'string' ? course : undefined,
-        paymentMethod: typeof paymentMethod === 'string' ? paymentMethod : undefined,
-        paymentStatus: typeof paymentStatus === 'string' ? paymentStatus : undefined,
-        startDate: typeof startDate === 'string' ? startDate : undefined,
-        endDate: typeof endDate === 'string' ? endDate : undefined,
+        studentId: typeof studentId === "string" ? studentId : undefined,
+        search: typeof search === "string" ? search : undefined,
+        course: typeof course === "string" ? course : undefined,
+        paymentMethod:
+          typeof paymentMethod === "string" ? paymentMethod : undefined,
+        paymentStatus:
+          typeof paymentStatus === "string" ? paymentStatus : undefined,
+        startDate: typeof startDate === "string" ? startDate : undefined,
+        endDate: typeof endDate === "string" ? endDate : undefined,
       }),
       listStudents(),
     ]);
@@ -102,12 +110,13 @@ export const getTransactions = async (req: Request, res: Response): Promise<void
       new Set([
         ...allStudents.map((s) => s.courseName),
         ...transactions.map((t) => t.courseName),
-      ])
+      ]),
     ).filter(Boolean);
 
     const totalAmount =
-      Math.round(transactions.reduce((sum, t) => sum + Number(t.amount || 0), 0) * 100) /
-      100;
+      Math.round(
+        transactions.reduce((sum, t) => sum + Number(t.amount || 0), 0) * 100,
+      ) / 100;
 
     res.json({
       success: true,
@@ -121,12 +130,16 @@ export const getTransactions = async (req: Request, res: Response): Promise<void
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err instanceof Error ? err.message : 'Failed to load transactions',
+      message:
+        err instanceof Error ? err.message : "Failed to load transactions",
     });
   }
 };
 
-export const getPaymentDetails = async (req: Request, res: Response): Promise<void> => {
+export const getPaymentDetails = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
     const payment = await getPaymentByIdOrReceipt(id);
@@ -134,7 +147,7 @@ export const getPaymentDetails = async (req: Request, res: Response): Promise<vo
     if (!payment) {
       res.status(404).json({
         success: false,
-        message: 'Recorded payment receipt not found.',
+        message: "Recorded payment receipt not found.",
       });
       return;
     }
@@ -151,12 +164,16 @@ export const getPaymentDetails = async (req: Request, res: Response): Promise<vo
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err instanceof Error ? err.message : 'Failed to fetch receipt details',
+      message:
+        err instanceof Error ? err.message : "Failed to fetch receipt details",
     });
   }
 };
 
-export const downloadReceiptPdf = async (req: Request, res: Response): Promise<void> => {
+export const downloadReceiptPdf = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
     const payment = await getPaymentByIdOrReceipt(id);
@@ -165,7 +182,7 @@ export const downloadReceiptPdf = async (req: Request, res: Response): Promise<v
       res.status(404).json({
         success: false,
         message:
-          'Cannot generate receipt: Payment record does not exist or was not successfully recorded.',
+          "Cannot generate receipt: Payment record does not exist or was not successfully recorded.",
       });
       return;
     }
@@ -174,25 +191,29 @@ export const downloadReceiptPdf = async (req: Request, res: Response): Promise<v
     if (!settings) {
       res.status(500).json({
         success: false,
-        message: 'Institution settings not configured. Please configure settings first.',
+        message:
+          "Institution settings not configured. Please configure settings first.",
       });
       return;
     }
     const pdfBuffer = await generateReceiptPdfBuffer(payment, settings);
 
-    const isDownload = req.query.download === 'true';
-    const disposition = isDownload ? 'attachment' : 'inline';
+    const isDownload = req.query.download === "true";
+    const disposition = isDownload ? "attachment" : "inline";
     const filename = `${payment.receiptNumber}.pdf`;
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `${disposition}; filename="${filename}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `${disposition}; filename="${filename}"`,
+    );
+    res.setHeader("Content-Length", pdfBuffer.length);
     res.send(pdfBuffer);
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err instanceof Error ? err.message : 'Failed to generate PDF receipt',
+      message:
+        err instanceof Error ? err.message : "Failed to generate PDF receipt",
     });
   }
 };
-

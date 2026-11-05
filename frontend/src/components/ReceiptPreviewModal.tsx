@@ -70,7 +70,12 @@ export const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
     methodStr.includes('card') ||
     methodStr.includes('online');
 
-  const branchName = (branch || payment.branch || settings.selectedBranch || 'Calicut').toUpperCase();
+  const receiptBranch = branch || payment.branch || settings.selectedBranch || 'Calicut';
+  const branchName = receiptBranch.toUpperCase();
+  const branchAddress =
+    settings.branches?.[receiptBranch]?.address ||
+    settings.address ||
+    '2nd Floor, OPS Mall, Vailathur,Tirur';
   const phoneNo = settings.phone || '+91 8921365750';
   const cleanMob = phoneNo.replace(/[^0-9]/g, '').slice(-10) || '8921365750';
 
@@ -129,7 +134,7 @@ export const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
               <div className="text-[11px] font-semibold text-neutral-800 space-y-1">
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-3 h-3 text-neutral-700 shrink-0" />
-                  <span>{settings.address || '2nd Floor, OPS Mall, Vailathur,Tirur'}</span>
+                  <span>{branchAddress}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Mail className="w-3 h-3 text-neutral-700 shrink-0" />

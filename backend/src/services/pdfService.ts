@@ -298,6 +298,12 @@ export const generateReceiptPdfBuffer = (
       // Middle: Contact info & mini vector icons
       const infoX = boxX + 115;
       const infoY = boxY + 14;
+      const branchName =
+        payment.branch || settings.selectedBranch || 'Calicut';
+      const branchAddress =
+        settings.branches?.[branchName]?.address ||
+        settings.address ||
+        '2nd Floor, OPS Mall, Vailathur,Tirur';
 
       // Location Pin icon
       drawLocationIcon(doc, infoX, infoY + 1, 7.5, '#262626');
@@ -305,7 +311,7 @@ export const generateReceiptPdfBuffer = (
         .font('Helvetica-Bold')
         .fontSize(7.5)
         .fillColor('#1f2937')
-        .text(settings.address || '2nd Floor, OPS Mall, Vailathur,Tirur', infoX + 11, infoY + 1);
+        .text(branchAddress, infoX + 11, infoY + 1);
 
       // Mail icon
       drawMailIcon(doc, infoX, infoY + 13, 7.5, '#262626');
@@ -489,9 +495,9 @@ export const generateReceiptPdfBuffer = (
       // Circular Rubber Stamp (Center)
       const stampX = boxX + boxW / 2 - 20;
       const stampY = boxY + 185;
-      const branchName = (payment.branch || settings.selectedBranch || 'Calicut').toUpperCase();
+      const branchNameForSeal = branchName.toUpperCase();
       const phoneNo = settings.phone || '+91 8921365750';
-      drawReceiptSeal(doc, stampX, stampY, branchName, phoneNo, '#1e40af');
+      drawReceiptSeal(doc, stampX, stampY, branchNameForSeal, phoneNo, '#1e40af');
 
       // Amount Box (Right)
       const amtLabelX = boxX + 340;

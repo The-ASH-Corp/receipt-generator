@@ -330,7 +330,7 @@ export const StudentProfilePage: React.FC = () => {
                       </span>
                       {payment.transactionReference && (
                         <span className="block text-xs font-mono text-slate-500">
-                          Ref: {payment.transactionReference}
+                         {payment.transactionReference}
                         </span>
                       )}
                     </td>

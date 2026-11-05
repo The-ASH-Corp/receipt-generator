@@ -1,21 +1,24 @@
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-import mongoose from 'mongoose';
-import { isMongoConnected } from '../config/db';
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
+import mongoose from "mongoose";
+import { isMongoConnected } from "../config/db";
 import {
   StudentModel,
   IStudent,
   StudentStatusType,
   ClassModeType,
   BranchType,
-} from '../models/Student';
-import { PaymentModel, IPayment, PaymentMethodType } from '../models/Payment';
-import { SettingsModel, ISettings } from '../models/Settings';
-import { AdminModel, IAdmin } from '../models/Admin';
-import { CourseModel, ICourse } from '../models/Course';
-import { CounterModel } from '../models/Counter';
-import { calculateFeeBreakdown, formatSequentialCode } from '../utils/idGenerator';
+} from "../models/Student";
+import { PaymentModel, IPayment, PaymentMethodType } from "../models/Payment";
+import { SettingsModel, ISettings } from "../models/Settings";
+import { AdminModel, IAdmin } from "../models/Admin";
+import { CourseModel, ICourse } from "../models/Course";
+import { CounterModel } from "../models/Counter";
+import {
+  calculateFeeBreakdown,
+  formatSequentialCode,
+} from "../utils/idGenerator";
 
 interface LocalDatabaseSchema {
   students: IStudent[];
@@ -26,15 +29,15 @@ interface LocalDatabaseSchema {
   counters: Record<string, number>;
 }
 
-const DATA_DIR = path.join(__dirname, '../../data');
-const DB_FILE = path.join(DATA_DIR, 'database.local.json');
+const DATA_DIR = path.join(__dirname, "../../data");
+const DB_FILE = path.join(DATA_DIR, "database.local.json");
 
 // Simple async mutex to ensure atomic operations & prevent race conditions on concurrent requests
 class AsyncMutex {
   private queue: Promise<void> = Promise.resolve();
 
   async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
-    let release: () => void = () => { };
+    let release: () => void = () => {};
     const prev = this.queue;
     this.queue = new Promise<void>((resolve) => {
       release = resolve;
@@ -50,37 +53,6 @@ class AsyncMutex {
 
 const txMutex = new AsyncMutex();
 
-// const DEFAULT_SETTINGS: ISettings = {
-//   academyName: 'ASH ACADEMY',
-//   academyLogo: '/ash-academy-logo.png',
-//   address: '2nd Floor, OPS Mall, Vailathur,Tirur',
-//   phone: '+91 8921365750',
-//   email: 'connect@ashacademy.ai',
-//   website: 'www.ashacademy.ai',
-//   receiptPrefix: 'e',
-//   receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
-//   currencySymbol: '₹',
-//   selectedBranch: 'Thirur',
-//   branches: {
-//     Thirur: {
-//       address: '2nd Floor, OPS Mall, Vailathur,Tirur',
-//       phone: '+91 8921365750',
-//       email: 'connect@ashacademy.ai',
-//       website: 'www.ashacademy.ai',
-//       receiptPrefix: 'e',
-//       receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
-//     },
-//     Calicut: {
-//       address: 'Hilite Business Park, Palazhi, Calicut, Pantheeramkav, Kerala',
-//       phone: '+91 8921365750',
-//       email: 'connect@ashacademy.ai',
-//       website: 'www.ashacademy.ai',
-//       receiptPrefix: 'e',
-//       receiptFooterMessage: 'Please note: All payments are final and non-refundable.',
-//     },
-//   },
-// };
-
 const readLocalDB = (): LocalDatabaseSchema => {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -89,17 +61,16 @@ const readLocalDB = (): LocalDatabaseSchema => {
     const initial: LocalDatabaseSchema = {
       students: [],
       payments: [],
-      // settings: { ...DEFAULT_SETTINGS },
       admins: [],
       counters: {
         student: 0,
         receipt: 0,
       },
     };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
+    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf-8");
     return initial;
   }
-  const raw = fs.readFileSync(DB_FILE, 'utf-8');
+  const raw = fs.readFileSync(DB_FILE, "utf-8");
   return JSON.parse(raw) as LocalDatabaseSchema;
 };
 
@@ -108,65 +79,19 @@ const writeLocalDB = (data: LocalDatabaseSchema): void => {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
   const tempFile = `${DB_FILE}.tmp`;
-  fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
+  fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), "utf-8");
   fs.renameSync(tempFile, DB_FILE);
 };
 
-const generateObjectId = (): string => crypto.randomBytes(12).toString('hex');
-
-// export const initializeDefaults = async (): Promise<void> => {
-//   const defaultCourses = [
-//     'Full Stack Web Development Bootcamp',
-//     'Data Science & Machine Learning',
-//     'UI/UX Product Design Mastery',
-//     'Cloud Architecture & DevOps',
-//   ];
-
-//   if (isMongoConnected()) {
-//     const existingSettings = await SettingsModel.findOne();
-//     if (!existingSettings) {
-//       await SettingsModel.create(DEFAULT_SETTINGS);
-//     }
-
-//     const courseCount = await CourseModel.countDocuments();
-//     if (courseCount === 0) {
-//       for (const name of defaultCourses) {
-//         await CourseModel.create({ name });
-//       }
-//     }
-//   } else {
-//     await txMutex.runExclusive(async () => {
-//       const db = readLocalDB();
-//       if (!db.settings || !db.settings.academyName) {
-//         db.settings = { ...DEFAULT_SETTINGS };
-//       }
-//       if (!db.courses || db.courses.length === 0) {
-//         const now = new Date().toISOString();
-//         db.courses = defaultCourses.map((name) => ({
-//           _id: generateObjectId(),
-//           name,
-//           createdAt: now,
-//           updatedAt: now,
-//         }));
-//       }
-//       writeLocalDB(db);
-//     });
-//   }
-// };
-
-
+const generateObjectId = (): string => crypto.randomBytes(12).toString("hex");
 
 export const initializeDefaults = async (): Promise<void> => {
   if (!isMongoConnected()) {
     await txMutex.runExclusive(async () => {
-      readLocalDB(); // Only initialize the local database file
+      readLocalDB();
     });
   }
 };
-
-
-
-
 
 // Next sequence generator (atomic)
 const getNextSequence = async (key: string): Promise<number> => {
@@ -174,7 +99,7 @@ const getNextSequence = async (key: string): Promise<number> => {
     const counter = await CounterModel.findOneAndUpdate(
       { key },
       { $inc: { seq: 1 } },
-      { new: true, upsert: true }
+      { new: true, upsert: true },
     );
     return counter.seq;
   } else {
@@ -188,7 +113,9 @@ const getNextSequence = async (key: string): Promise<number> => {
 };
 
 // Admin Auth
-export const findAdminByEmail = async (email: string): Promise<IAdmin | null> => {
+export const findAdminByEmail = async (
+  email: string,
+): Promise<IAdmin | null> => {
   const normalized = email.toLowerCase().trim();
   if (isMongoConnected()) {
     const doc = await AdminModel.findOne({ email: normalized }).lean();
@@ -211,7 +138,9 @@ export const createAdminRecord = async (input: {
     if (isMongoConnected()) {
       const existing = await AdminModel.findOne({ email: cleanEmail });
       if (existing) {
-        throw new Error('An admin with this email address is already registered.');
+        throw new Error(
+          "An admin with this email address is already registered.",
+        );
       }
       const created = await AdminModel.create({
         name: cleanName,
@@ -227,7 +156,9 @@ export const createAdminRecord = async (input: {
     } else {
       const db = readLocalDB();
       if (db.admins.some((a) => a.email === cleanEmail)) {
-        throw new Error('An admin with this email address is already registered.');
+        throw new Error(
+          "An admin with this email address is already registered.",
+        );
       }
       const newAdmin: IAdmin = {
         _id: generateObjectId(),
@@ -241,22 +172,6 @@ export const createAdminRecord = async (input: {
     }
   });
 };
-
-// Settings
-// export const getInstitutionSettings = async (): Promise<ISettings> => {
-//   if (isMongoConnected()) {
-//     const doc = await SettingsModel.findOne().lean();
-//     if (!doc) {
-//       const created = await SettingsModel.create(DEFAULT_SETTINGS);
-//       const obj = created.toObject();
-//       return { ...DEFAULT_SETTINGS, ...obj, _id: String(obj._id) };
-//     }
-//     return { ...DEFAULT_SETTINGS, ...doc, _id: String(doc._id) };
-//   } else {
-//     const db = readLocalDB();
-//     return db.settings || { ...DEFAULT_SETTINGS };
-//   }
-// };
 
 export const getInstitutionSettings = async (): Promise<ISettings | null> => {
   if (isMongoConnected()) {
@@ -274,88 +189,8 @@ export const getInstitutionSettings = async (): Promise<ISettings | null> => {
   return db.settings || null;
 };
 
-// export const updateInstitutionSettings = async (
-//   updates: Partial<ISettings>
-// ): Promise<ISettings> => {
-//   return txMutex.runExclusive(async () => {
-//     // const cleanUpdates: Partial<ISettings> = {
-//     //   academyName: updates.academyName?.trim() || DEFAULT_SETTINGS.academyName,
-//     //   academyLogo: updates.academyLogo !== undefined ? updates.academyLogo : '',
-//     //   address: updates.address?.trim() || DEFAULT_SETTINGS.address,
-//     //   phone: updates.phone?.trim() || DEFAULT_SETTINGS.phone,
-//     //   email: updates.email?.trim() || DEFAULT_SETTINGS.email,
-//     //   website: updates.website?.trim() ?? DEFAULT_SETTINGS.website,
-//     //   receiptPrefix: (updates.receiptPrefix?.trim() || 'e').toUpperCase(),
-//     //   receiptFooterMessage:
-//     //     updates.receiptFooterMessage?.trim() || DEFAULT_SETTINGS.receiptFooterMessage,
-//     //   currencySymbol: updates.currencySymbol?.trim() || '₹',
-//     //   selectedBranch: updates.selectedBranch || 'Thirur',
-//     //   branches: updates.branches || DEFAULT_SETTINGS.branches,
-//     //   updatedAt: new Date().toISOString(),
-//     // };
-//     const cleanUpdates: Partial<ISettings> = {
-//       ...(updates.academyName !== undefined && {
-//         academyName: updates.academyName.trim(),
-//       }),
-//       ...(updates.academyLogo !== undefined && {
-//         academyLogo: updates.academyLogo,
-//       }),
-//       ...(updates.address !== undefined && {
-//         address: updates.address.trim(),
-//       }),
-//       ...(updates.phone !== undefined && {
-//         phone: updates.phone.trim(),
-//       }),
-//       ...(updates.email !== undefined && {
-//         email: updates.email.trim(),
-//       }),
-//       ...(updates.website !== undefined && {
-//         website: updates.website.trim(),
-//       }),
-//       ...(updates.receiptPrefix !== undefined && {
-//         receiptPrefix: updates.receiptPrefix.trim().toUpperCase(),
-//       }),
-//       ...(updates.receiptFooterMessage !== undefined && {
-//         receiptFooterMessage: updates.receiptFooterMessage.trim(),
-//       }),
-//       ...(updates.currencySymbol !== undefined && {
-//         currencySymbol: updates.currencySymbol.trim(),
-//       }),
-//       ...(updates.selectedBranch !== undefined && {
-//         selectedBranch: updates.selectedBranch,
-//       }),
-//       ...(updates.branches !== undefined && {
-//         branches: updates.branches,
-//       }),
-//       updatedAt: new Date().toISOString(),
-//     };
-
-//     if (isMongoConnected()) {
-//       const existing = await SettingsModel.findOne();
-//       if (existing) {
-//         Object.assign(existing, cleanUpdates);
-//         await existing.save();
-//         return { ...existing.toObject(), _id: String(existing._id) };
-//       } else {
-//         const created = await SettingsModel.create(cleanUpdates);
-//         return { ...created.toObject(), _id: String(created._id) };
-//       }
-//     } else {
-//       const db = readLocalDB();
-//       db.settings = {
-//         ...db.settings,
-//         ...cleanUpdates,
-//       };
-//       writeLocalDB(db);
-//       return db.settings;
-//     }
-//   });
-// };
-
-// Recompute student fee totals strictly from immutable payment records
-
 export const updateInstitutionSettings = async (
-  updates: Partial<ISettings>
+  updates: Partial<ISettings>,
 ): Promise<ISettings> => {
   return txMutex.runExclusive(async () => {
     const cleanUpdates: Partial<ISettings> = {
@@ -425,15 +260,19 @@ export const updateInstitutionSettings = async (
   });
 };
 
-
-
-
-const recomputeStudentBalance = async (studentInternalId: string): Promise<IStudent | null> => {
+const recomputeStudentBalance = async (
+  studentInternalId: string,
+): Promise<IStudent | null> => {
   if (isMongoConnected()) {
     const student = await StudentModel.findById(studentInternalId);
     if (!student) return null;
-    const payments = await PaymentModel.find({ student: String(student._id) }).lean();
-    const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const payments = await PaymentModel.find({
+      student: String(student._id),
+    }).lean();
+    const totalPaid = payments.reduce(
+      (sum, p) => sum + Number(p.amount || 0),
+      0,
+    );
     const breakdown = calculateFeeBreakdown(student.totalCourseFee, totalPaid);
 
     student.totalAmountPaid = breakdown.totalAmountPaid;
@@ -447,7 +286,10 @@ const recomputeStudentBalance = async (studentInternalId: string): Promise<IStud
     if (idx === -1) return null;
     const student = db.students[idx];
     const payments = db.payments.filter((p) => p.student === student._id);
-    const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const totalPaid = payments.reduce(
+      (sum, p) => sum + Number(p.amount || 0),
+      0,
+    );
     const breakdown = calculateFeeBreakdown(student.totalCourseFee, totalPaid);
 
     student.totalAmountPaid = breakdown.totalAmountPaid;
@@ -478,37 +320,46 @@ export interface CreateStudentInput {
   status?: StudentStatusType;
 }
 
-export const createStudentRecord = async (input: CreateStudentInput): Promise<IStudent> => {
+export const createStudentRecord = async (
+  input: CreateStudentInput,
+): Promise<IStudent> => {
   return txMutex.runExclusive(async () => {
     const studentId = input.studentId.trim();
 
     if (!studentId) {
-      throw new Error('Admission Number is required.');
+      throw new Error("Admission Number is required.");
     }
     if (isMongoConnected()) {
       const existingStudent = await StudentModel.findOne({ studentId });
 
       if (existingStudent) {
-        throw new Error('A student with this Admission Number already exists.');
+        throw new Error("A student with this Admission Number already exists.");
       }
     } else {
       const db = readLocalDB();
 
-      if (db.students.some(
-        (student) => student.studentId.toLowerCase() === studentId.toLowerCase()
-      )) {
-        throw new Error('A student with this Admission Number already exists.');
+      if (
+        db.students.some(
+          (student) =>
+            student.studentId.toLowerCase() === studentId.toLowerCase(),
+        )
+      ) {
+        throw new Error("A student with this Admission Number already exists.");
       }
     }
     const fee = Math.round(Number(input.totalCourseFee) * 100) / 100;
     const initialPaid = Math.max(
       0,
-      Math.min(fee, Math.round(Number(input.receivedAmount || 0) * 100) / 100)
+      Math.min(fee, Math.round(Number(input.receivedAmount || 0) * 100) / 100),
     );
     const breakdown = calculateFeeBreakdown(fee, initialPaid);
     const now = new Date().toISOString();
-    const regDate = input.registrationDate ? new Date(input.registrationDate) : new Date();
-    const startDate = input.courseStartDate ? new Date(input.courseStartDate) : regDate;
+    const regDate = input.registrationDate
+      ? new Date(input.registrationDate)
+      : new Date();
+    const startDate = input.courseStartDate
+      ? new Date(input.courseStartDate)
+      : regDate;
 
     let createdStudent: IStudent;
 
@@ -517,7 +368,7 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
 
       if (!settings?.receiptPrefix?.trim()) {
         throw new Error(
-          'Please configure the receipt prefix in Institution Settings before recording payments.'
+          "Please configure the receipt prefix in Institution Settings before recording payments.",
         );
       }
 
@@ -525,20 +376,20 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
       const created = await StudentModel.create({
         studentId,
         fullName: input.fullName.trim(),
-        email: input.email ? input.email.toLowerCase().trim() : '',
+        email: input.email ? input.email.toLowerCase().trim() : "",
         phone: input.phone.trim(),
         courseName: input.courseName.trim(),
         courseDuration: input.courseDuration.trim(),
-        classMode: input.classMode || 'Offline',
-        branch: input.branch || 'Calicut',
-        paymentMethod: input.paymentMethod || '',
+        classMode: input.classMode || "Offline",
+        branch: input.branch || "Calicut",
+        paymentMethod: input.paymentMethod || "",
         courseStartDate: startDate,
         totalCourseFee: breakdown.totalCourseFee,
         totalAmountPaid: breakdown.totalAmountPaid,
         remainingBalance: breakdown.remainingBalance,
         paymentStatus: breakdown.paymentStatus,
         registrationDate: regDate,
-        status: input.status || 'Active',
+        status: input.status || "Active",
       });
       createdStudent = { ...created.toObject(), _id: String(created._id) };
 
@@ -547,12 +398,12 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
         // const prefix = settings.receiptPrefix || 'e';
         if (!settings?.receiptPrefix?.trim()) {
           throw new Error(
-            'Please configure the receipt prefix in Institution Settings before recording payments.'
+            "Please configure the receipt prefix in Institution Settings before recording payments.",
           );
         }
 
         const prefix = settings.receiptPrefix.trim().toUpperCase();
-        const receiptSeq = await getNextSequence('receipt');
+        const receiptSeq = await getNextSequence("receipt");
         const receiptNumber = formatSequentialCode(prefix, receiptSeq, regDate);
 
         await PaymentModel.create({
@@ -560,7 +411,7 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
           student: String(created._id),
           studentId: createdStudent.studentId,
           studentName: createdStudent.fullName,
-          studentEmail: createdStudent.email || '',
+          studentEmail: createdStudent.email || "",
           studentPhone: createdStudent.phone,
           courseName: createdStudent.courseName,
           amount: initialPaid,
@@ -570,9 +421,9 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
           remainingBalanceAfter: breakdown.remainingBalance,
           paymentStatusAfter: breakdown.paymentStatus,
           paymentDate: regDate,
-          paymentMethod: input.paymentMethod || 'Cash',
-          transactionReference: 'Initial Registration Payment',
-          branch: input.branch || createdStudent.branch || 'Calicut',
+          paymentMethod: input.paymentMethod || "Cash",
+          transactionReference: "Initial Registration Payment",
+          branch: input.branch || createdStudent.branch || "Calicut",
         });
       }
     } else {
@@ -585,20 +436,20 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
         _id: newStudentId,
         studentId,
         fullName: input.fullName.trim(),
-        email: input.email ? input.email.toLowerCase().trim() : '',
+        email: input.email ? input.email.toLowerCase().trim() : "",
         phone: input.phone.trim(),
         courseName: input.courseName.trim(),
         courseDuration: input.courseDuration.trim(),
-        classMode: input.classMode || 'Offline',
-        branch: input.branch || 'Calicut',
-        paymentMethod: input.paymentMethod || '',
+        classMode: input.classMode || "Offline",
+        branch: input.branch || "Calicut",
+        paymentMethod: input.paymentMethod || "",
         courseStartDate: startDate.toISOString(),
         totalCourseFee: breakdown.totalCourseFee,
         totalAmountPaid: breakdown.totalAmountPaid,
         remainingBalance: breakdown.remainingBalance,
         paymentStatus: breakdown.paymentStatus,
         registrationDate: regDate.toISOString(),
-        status: input.status || 'Active',
+        status: input.status || "Active",
         createdAt: now,
         updatedAt: now,
       };
@@ -609,13 +460,13 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
 
         if (!settings?.receiptPrefix?.trim()) {
           throw new Error(
-            'Please configure the receipt prefix in Institution Settings before recording payments.'
+            "Please configure the receipt prefix in Institution Settings before recording payments.",
           );
         }
 
         const prefix = settings.receiptPrefix.trim().toUpperCase();
-        const receiptSeq = (db.counters['receipt'] || 0) + 1;
-        db.counters['receipt'] = receiptSeq;
+        const receiptSeq = (db.counters["receipt"] || 0) + 1;
+        db.counters["receipt"] = receiptSeq;
         const receiptNumber = formatSequentialCode(prefix, receiptSeq, regDate);
 
         const newPayment: IPayment = {
@@ -624,7 +475,7 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
           student: newStudentId,
           studentId: newStudent.studentId,
           studentName: newStudent.fullName,
-          studentEmail: newStudent.email || '',
+          studentEmail: newStudent.email || "",
           studentPhone: newStudent.phone,
           courseName: newStudent.courseName,
           amount: initialPaid,
@@ -634,9 +485,9 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
           remainingBalanceAfter: breakdown.remainingBalance,
           paymentStatusAfter: breakdown.paymentStatus,
           paymentDate: regDate.toISOString(),
-          paymentMethod: (input.paymentMethod as any) || 'Cash',
-          transactionReference: 'Initial Registration Payment',
-          branch: input.branch || 'Calicut',
+          paymentMethod: (input.paymentMethod as any) || "Cash",
+          transactionReference: "Initial Registration Payment",
+          branch: input.branch || "Calicut",
           createdAt: now,
         };
         db.payments.unshift(newPayment);
@@ -652,30 +503,37 @@ export const createStudentRecord = async (input: CreateStudentInput): Promise<IS
 
 export const updateStudentRecord = async (
   id: string,
-  updates: Partial<CreateStudentInput>
+  updates: Partial<CreateStudentInput>,
 ): Promise<IStudent | null> => {
   return txMutex.runExclusive(async () => {
     if (isMongoConnected()) {
       const student = await StudentModel.findById(id);
       if (!student) return null;
 
-      const payments = await PaymentModel.find({ student: String(student._id) }).lean();
-      const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const payments = await PaymentModel.find({
+        student: String(student._id),
+      }).lean();
+      const totalPaid = payments.reduce(
+        (sum, p) => sum + Number(p.amount || 0),
+        0,
+      );
 
       if (updates.totalCourseFee !== undefined) {
         const newFee = Number(updates.totalCourseFee);
         if (newFee < totalPaid) {
           throw new Error(
-            `Total course fee (${newFee}) cannot be set lower than total amount already paid (${totalPaid}).`
+            `Total course fee (${newFee}) cannot be set lower than total amount already paid (${totalPaid}).`,
           );
         }
         student.totalCourseFee = newFee;
       }
-      if (updates.fullName !== undefined) student.fullName = updates.fullName.trim();
-      if (updates.email !== undefined) student.email = updates.email.toLowerCase().trim();
+      if (updates.fullName !== undefined)
+        student.fullName = updates.fullName.trim();
+      if (updates.email !== undefined)
+        student.email = updates.email.toLowerCase().trim();
       if (updates.phone !== undefined) student.phone = updates.phone.trim();
       if (updates.studentId !== undefined) {
-        const cleanStudentId = String(updates.studentId ?? '').trim();
+        const cleanStudentId = String(updates.studentId ?? "").trim();
 
         const duplicate = await StudentModel.findOne({
           studentId: cleanStudentId,
@@ -683,24 +541,32 @@ export const updateStudentRecord = async (
         });
 
         if (duplicate) {
-          throw new Error('A student with this Admission Number already exists.');
+          throw new Error(
+            "A student with this Admission Number already exists.",
+          );
         }
 
         student.studentId = cleanStudentId;
       }
-      if (updates.courseName !== undefined) student.courseName = updates.courseName.trim();
+      if (updates.courseName !== undefined)
+        student.courseName = updates.courseName.trim();
       if (updates.courseDuration !== undefined)
         student.courseDuration = updates.courseDuration.trim();
-      if (updates.classMode !== undefined) student.classMode = updates.classMode;
+      if (updates.classMode !== undefined)
+        student.classMode = updates.classMode;
       if (updates.branch !== undefined) student.branch = updates.branch;
-      if (updates.paymentMethod !== undefined) student.paymentMethod = updates.paymentMethod;
+      if (updates.paymentMethod !== undefined)
+        student.paymentMethod = updates.paymentMethod;
       if (updates.courseStartDate !== undefined)
         student.courseStartDate = new Date(updates.courseStartDate);
       if (updates.registrationDate !== undefined)
         student.registrationDate = new Date(updates.registrationDate);
       if (updates.status !== undefined) student.status = updates.status;
 
-      const breakdown = calculateFeeBreakdown(student.totalCourseFee, totalPaid);
+      const breakdown = calculateFeeBreakdown(
+        student.totalCourseFee,
+        totalPaid,
+      );
       student.totalAmountPaid = breakdown.totalAmountPaid;
       student.remainingBalance = breakdown.remainingBalance;
       student.paymentStatus = breakdown.paymentStatus;
@@ -709,52 +575,71 @@ export const updateStudentRecord = async (
       return { ...student.toObject(), _id: String(student._id) };
     } else {
       const db = readLocalDB();
-      const idx = db.students.findIndex((s) => s._id === id || s.studentId === id);
+      const idx = db.students.findIndex(
+        (s) => s._id === id || s.studentId === id,
+      );
       if (idx === -1) return null;
       const student = db.students[idx];
 
       const payments = db.payments.filter((p) => p.student === student._id);
-      const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const totalPaid = payments.reduce(
+        (sum, p) => sum + Number(p.amount || 0),
+        0,
+      );
 
       if (updates.totalCourseFee !== undefined) {
         const newFee = Number(updates.totalCourseFee);
         if (newFee < totalPaid) {
           throw new Error(
-            `Total course fee (${newFee}) cannot be set lower than total amount already paid (${totalPaid}).`
+            `Total course fee (${newFee}) cannot be set lower than total amount already paid (${totalPaid}).`,
           );
         }
         student.totalCourseFee = newFee;
       }
-      if (updates.fullName !== undefined) student.fullName = updates.fullName.trim();
-      if (updates.email !== undefined) student.email = updates.email.toLowerCase().trim();
+      if (updates.fullName !== undefined)
+        student.fullName = updates.fullName.trim();
+      if (updates.email !== undefined)
+        student.email = updates.email.toLowerCase().trim();
       if (updates.phone !== undefined) student.phone = updates.phone.trim();
-      if (updates.courseName !== undefined) student.courseName = updates.courseName.trim();
+      if (updates.courseName !== undefined)
+        student.courseName = updates.courseName.trim();
       if (updates.courseDuration !== undefined)
         student.courseDuration = updates.courseDuration.trim();
-      if (updates.classMode !== undefined) student.classMode = updates.classMode;
+      if (updates.classMode !== undefined)
+        student.classMode = updates.classMode;
       if (updates.branch !== undefined) student.branch = updates.branch;
-      if (updates.paymentMethod !== undefined) student.paymentMethod = updates.paymentMethod;
+      if (updates.paymentMethod !== undefined)
+        student.paymentMethod = updates.paymentMethod;
       if (updates.courseStartDate !== undefined)
-        student.courseStartDate = new Date(updates.courseStartDate).toISOString();
+        student.courseStartDate = new Date(
+          updates.courseStartDate,
+        ).toISOString();
       if (updates.registrationDate !== undefined)
-        student.registrationDate = new Date(updates.registrationDate).toISOString();
+        student.registrationDate = new Date(
+          updates.registrationDate,
+        ).toISOString();
       if (updates.status !== undefined) student.status = updates.status;
       if (updates.studentId !== undefined) {
-        const cleanStudentId = String(updates.studentId ?? '').trim();
+        const cleanStudentId = String(updates.studentId ?? "").trim();
         const duplicate = db.students.some(
           (s, i) =>
             i !== idx &&
-            s.studentId.toLowerCase() === cleanStudentId.toLowerCase()
+            s.studentId.toLowerCase() === cleanStudentId.toLowerCase(),
         );
 
         if (duplicate) {
-          throw new Error('A student with this Admission Number already exists.');
+          throw new Error(
+            "A student with this Admission Number already exists.",
+          );
         }
 
         student.studentId = cleanStudentId;
       }
 
-      const breakdown = calculateFeeBreakdown(student.totalCourseFee, totalPaid);
+      const breakdown = calculateFeeBreakdown(
+        student.totalCourseFee,
+        totalPaid,
+      );
       student.totalAmountPaid = breakdown.totalAmountPaid;
       student.remainingBalance = breakdown.remainingBalance;
       student.paymentStatus = breakdown.paymentStatus;
@@ -789,12 +674,14 @@ export const deleteStudentRecord = async (id: string): Promise<boolean> => {
       return true;
     } else {
       const db = readLocalDB();
-      const idx = db.students.findIndex((s) => s._id === id || s.studentId === id);
+      const idx = db.students.findIndex(
+        (s) => s._id === id || s.studentId === id,
+      );
       if (idx === -1) return false;
       const student = db.students[idx];
       db.students.splice(idx, 1);
       db.payments = db.payments.filter(
-        (p) => p.student !== student._id && p.studentId !== student.studentId
+        (p) => p.student !== student._id && p.studentId !== student.studentId,
       );
       writeLocalDB(db);
       return true;
@@ -809,7 +696,9 @@ export interface StudentFilterQuery {
   paymentStatus?: string;
 }
 
-export const listStudents = async (query: StudentFilterQuery = {}): Promise<IStudent[]> => {
+export const listStudents = async (
+  query: StudentFilterQuery = {},
+): Promise<IStudent[]> => {
   let students: IStudent[] = [];
 
   if (isMongoConnected()) {
@@ -819,7 +708,8 @@ export const listStudents = async (query: StudentFilterQuery = {}): Promise<IStu
     const db = readLocalDB();
     students = [...db.students].sort(
       (a, b) =>
-        new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()
+        new Date(b.registrationDate).getTime() -
+        new Date(a.registrationDate).getTime(),
     );
   }
 
@@ -830,19 +720,19 @@ export const listStudents = async (query: StudentFilterQuery = {}): Promise<IStu
         s.fullName.toLowerCase().includes(q) ||
         (s.email && s.email.toLowerCase().includes(q)) ||
         s.studentId.toLowerCase().includes(q) ||
-        s.phone.toLowerCase().includes(q)
+        s.phone.toLowerCase().includes(q),
     );
   }
 
-  if (query.course && query.course !== 'All') {
+  if (query.course && query.course !== "All") {
     students = students.filter((s) => s.courseName === query.course);
   }
 
-  if (query.status && query.status !== 'All') {
+  if (query.status && query.status !== "All") {
     students = students.filter((s) => s.status === query.status);
   }
 
-  if (query.paymentStatus && query.paymentStatus !== 'All') {
+  if (query.paymentStatus && query.paymentStatus !== "All") {
     students = students.filter((s) => s.paymentStatus === query.paymentStatus);
   }
 
@@ -878,18 +768,20 @@ export interface RecordPaymentInput {
 }
 
 export const recordPaymentTransaction = async (
-  input: RecordPaymentInput
+  input: RecordPaymentInput,
 ): Promise<{ payment: IPayment; student: IStudent }> => {
   return txMutex.runExclusive(async () => {
     const amount = Math.round(Number(input.amount) * 100) / 100;
     if (isNaN(amount) || amount <= 0) {
-      throw new Error('Payment amount must be a valid number greater than zero.');
+      throw new Error(
+        "Payment amount must be a valid number greater than zero.",
+      );
     }
 
     const settings = await getInstitutionSettings();
     if (!settings?.receiptPrefix?.trim()) {
       throw new Error(
-        'Please configure the receipt prefix in Institution Settings before recording payments.'
+        "Please configure the receipt prefix in Institution Settings before recording payments.",
       );
     }
     const prefix = settings.receiptPrefix.trim().toUpperCase();
@@ -903,32 +795,42 @@ export const recordPaymentTransaction = async (
         student = await StudentModel.findOne({ studentId: input.studentId });
       }
       if (!student) {
-        throw new Error('Student not found. A payment must belong to an existing student.');
+        throw new Error(
+          "Student not found. A payment must belong to an existing student.",
+        );
       }
 
       // Compute previous amount paid strictly from recorded payments
-      const existingPayments = await PaymentModel.find({ student: String(student._id) }).lean();
+      const existingPayments = await PaymentModel.find({
+        student: String(student._id),
+      }).lean();
       const previousPaid =
         Math.round(
-          existingPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0) * 100
+          existingPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0) *
+            100,
         ) / 100;
       const currentRemaining = Math.max(
         0,
-        Math.round((student.totalCourseFee - previousPaid) * 100) / 100
+        Math.round((student.totalCourseFee - previousPaid) * 100) / 100,
       );
 
       if (amount > currentRemaining) {
         throw new Error(
-          `Payment amount (${amount}) exceeds remaining balance (${currentRemaining}). Enable advance payment if intentional.`
+          `Payment amount (${amount}) exceeds remaining balance (${currentRemaining}). Enable advance payment if intentional.`,
         );
       }
 
-      const seq = await getNextSequence('receipt');
-      const paymentDateObj = input.paymentDate ? new Date(input.paymentDate) : new Date();
+      const seq = await getNextSequence("receipt");
+      const paymentDateObj = input.paymentDate
+        ? new Date(input.paymentDate)
+        : new Date();
       const receiptNumber = formatSequentialCode(prefix, seq, paymentDateObj);
 
       const newTotalPaid = Math.round((previousPaid + amount) * 100) / 100;
-      const breakdownAfter = calculateFeeBreakdown(student.totalCourseFee, newTotalPaid);
+      const breakdownAfter = calculateFeeBreakdown(
+        student.totalCourseFee,
+        newTotalPaid,
+      );
 
       const createdPayment = await PaymentModel.create({
         receiptNumber,
@@ -946,8 +848,8 @@ export const recordPaymentTransaction = async (
         paymentStatusAfter: breakdownAfter.paymentStatus,
         paymentDate: paymentDateObj,
         paymentMethod: input.paymentMethod,
-        transactionReference: input.transactionReference?.trim() || '',
-        branch: student.branch || 'Calicut',
+        transactionReference: input.transactionReference?.trim() || "",
+        branch: student.branch || "Calicut",
       });
 
       student.totalAmountPaid = breakdownAfter.totalAmountPaid;
@@ -956,48 +858,65 @@ export const recordPaymentTransaction = async (
       await student.save();
 
       return {
-        payment: { ...createdPayment.toObject(), _id: String(createdPayment._id) },
+        payment: {
+          ...createdPayment.toObject(),
+          _id: String(createdPayment._id),
+        },
         student: { ...student.toObject(), _id: String(student._id) },
       };
     } else {
       const db = readLocalDB();
       const studentIdx = db.students.findIndex(
-        (s) => s._id === input.studentId || s.studentId === input.studentId
+        (s) => s._id === input.studentId || s.studentId === input.studentId,
       );
       if (studentIdx === -1) {
-        throw new Error('Student not found. A payment must belong to an existing student.');
+        throw new Error(
+          "Student not found. A payment must belong to an existing student.",
+        );
       }
 
       const student = db.students[studentIdx];
-      const existingPayments = db.payments.filter((p) => p.student === student._id);
+      const existingPayments = db.payments.filter(
+        (p) => p.student === student._id,
+      );
       const previousPaid =
         Math.round(
-          existingPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0) * 100
+          existingPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0) *
+            100,
         ) / 100;
       const currentRemaining = Math.max(
         0,
-        Math.round((student.totalCourseFee - previousPaid) * 100) / 100
+        Math.round((student.totalCourseFee - previousPaid) * 100) / 100,
       );
 
       if (amount > currentRemaining) {
         throw new Error(
-          `Payment amount (${amount}) exceeds the remaining balance (${currentRemaining}).`
+          `Payment amount (${amount}) exceeds the remaining balance (${currentRemaining}).`,
         );
       }
 
-      const currentReceiptSeq = db.counters['receipt'] || 0;
+      const currentReceiptSeq = db.counters["receipt"] || 0;
       const nextReceiptSeq = currentReceiptSeq + 1;
-      const paymentDateObj = input.paymentDate ? new Date(input.paymentDate) : new Date();
-      const receiptNumber = formatSequentialCode(prefix, nextReceiptSeq, paymentDateObj);
+      const paymentDateObj = input.paymentDate
+        ? new Date(input.paymentDate)
+        : new Date();
+      const receiptNumber = formatSequentialCode(
+        prefix,
+        nextReceiptSeq,
+        paymentDateObj,
+      );
 
       if (db.payments.some((p) => p.receiptNumber === receiptNumber)) {
         throw new Error(`Duplicate receipt number detected: ${receiptNumber}`);
       }
 
-      db.counters['receipt'] = nextReceiptSeq;
+      db.counters["receipt"] = nextReceiptSeq;
 
       const newTotalPaid = Math.round((previousPaid + amount) * 100) / 100;
-      const breakdownAfter = calculateFeeBreakdown(student.totalCourseFee, newTotalPaid);
+      const breakdownAfter = calculateFeeBreakdown(
+        student.totalCourseFee,
+        newTotalPaid,
+      );
       const nowIso = new Date().toISOString();
 
       const newPayment: IPayment = {
@@ -1017,8 +936,8 @@ export const recordPaymentTransaction = async (
         paymentStatusAfter: breakdownAfter.paymentStatus,
         paymentDate: paymentDateObj.toISOString(),
         paymentMethod: input.paymentMethod,
-        transactionReference: input.transactionReference?.trim() || '',
-        branch: student.branch || 'Calicut',
+        transactionReference: input.transactionReference?.trim() || "",
+        branch: student.branch || "Calicut",
         createdAt: nowIso,
       };
 
@@ -1048,24 +967,32 @@ export interface PaymentFilterQuery {
   endDate?: string;
 }
 
-export const listPayments = async (query: PaymentFilterQuery = {}): Promise<IPayment[]> => {
+export const listPayments = async (
+  query: PaymentFilterQuery = {},
+): Promise<IPayment[]> => {
   let payments: IPayment[] = [];
 
   if (isMongoConnected()) {
-    const docs = await PaymentModel.find().sort({ paymentDate: -1, createdAt: -1 }).lean();
+    const docs = await PaymentModel.find()
+      .sort({ paymentDate: -1, createdAt: -1 })
+      .lean();
     payments = docs.map((d) => ({ ...d, _id: String(d._id) }));
   } else {
     const db = readLocalDB();
     payments = [...db.payments].sort((a, b) => {
-      const diff = new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime();
+      const diff =
+        new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime();
       if (diff !== 0) return diff;
-      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      return (
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime()
+      );
     });
   }
 
   if (query.studentId) {
     payments = payments.filter(
-      (p) => p.student === query.studentId || p.studentId === query.studentId
+      (p) => p.student === query.studentId || p.studentId === query.studentId,
     );
   }
 
@@ -1076,20 +1003,23 @@ export const listPayments = async (query: PaymentFilterQuery = {}): Promise<IPay
         p.studentName.toLowerCase().includes(q) ||
         p.studentId.toLowerCase().includes(q) ||
         p.receiptNumber.toLowerCase().includes(q) ||
-        (p.transactionReference && p.transactionReference.toLowerCase().includes(q))
+        (p.transactionReference &&
+          p.transactionReference.toLowerCase().includes(q)),
     );
   }
 
-  if (query.course && query.course !== 'All') {
+  if (query.course && query.course !== "All") {
     payments = payments.filter((p) => p.courseName === query.course);
   }
 
-  if (query.paymentMethod && query.paymentMethod !== 'All') {
+  if (query.paymentMethod && query.paymentMethod !== "All") {
     payments = payments.filter((p) => p.paymentMethod === query.paymentMethod);
   }
 
-  if (query.paymentStatus && query.paymentStatus !== 'All') {
-    payments = payments.filter((p) => p.paymentStatusAfter === query.paymentStatus);
+  if (query.paymentStatus && query.paymentStatus !== "All") {
+    payments = payments.filter(
+      (p) => p.paymentStatusAfter === query.paymentStatus,
+    );
   }
 
   if (query.startDate) {
@@ -1110,7 +1040,7 @@ export const listPayments = async (query: PaymentFilterQuery = {}): Promise<IPay
     payments = payments.map((p) => {
       if (!p.branch && p.student) {
         const student = db.students.find(
-          (s) => s._id === p.student || s.studentId === p.student
+          (s) => s._id === p.student || s.studentId === p.student,
         );
         if (student?.branch) return { ...p, branch: student.branch };
       }
@@ -1121,7 +1051,9 @@ export const listPayments = async (query: PaymentFilterQuery = {}): Promise<IPay
   return payments;
 };
 
-export const getPaymentByIdOrReceipt = async (idOrReceipt: string): Promise<IPayment | null> => {
+export const getPaymentByIdOrReceipt = async (
+  idOrReceipt: string,
+): Promise<IPayment | null> => {
   if (isMongoConnected()) {
     let doc = null;
     if (mongoose.Types.ObjectId.isValid(idOrReceipt)) {
@@ -1140,13 +1072,15 @@ export const getPaymentByIdOrReceipt = async (idOrReceipt: string): Promise<IPay
   } else {
     const db = readLocalDB();
     const payment = db.payments.find(
-      (p) => p._id === idOrReceipt || p.receiptNumber.toLowerCase() === idOrReceipt.toLowerCase()
+      (p) =>
+        p._id === idOrReceipt ||
+        p.receiptNumber.toLowerCase() === idOrReceipt.toLowerCase(),
     );
     if (!payment) return null;
     const copy = { ...payment };
     if (!copy.branch && copy.student) {
       const student = db.students.find(
-        (s) => s._id === copy.student || s.studentId === copy.student
+        (s) => s._id === copy.student || s.studentId === copy.student,
       );
       if (student?.branch) copy.branch = student.branch;
     }
@@ -1169,23 +1103,30 @@ export const createCourseRecord = async (name: string): Promise<ICourse> => {
   return txMutex.runExclusive(async () => {
     const cleanName = name.trim();
     if (!cleanName) {
-      throw new Error('Course name is required.');
+      throw new Error("Course name is required.");
     }
 
     if (isMongoConnected()) {
       const existing = await CourseModel.findOne({
-        name: { $regex: new RegExp(`^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        name: {
+          $regex: new RegExp(
+            `^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            "i",
+          ),
+        },
       });
       if (existing) {
-        throw new Error('A course with this name already exists.');
+        throw new Error("A course with this name already exists.");
       }
       const created = await CourseModel.create({ name: cleanName });
       return { ...created.toObject(), _id: String(created._id) };
     } else {
       const db = readLocalDB();
       if (!db.courses) db.courses = [];
-      if (db.courses.some((c) => c.name.toLowerCase() === cleanName.toLowerCase())) {
-        throw new Error('A course with this name already exists.');
+      if (
+        db.courses.some((c) => c.name.toLowerCase() === cleanName.toLowerCase())
+      ) {
+        throw new Error("A course with this name already exists.");
       }
       const now = new Date().toISOString();
       const newCourse: ICourse = {
@@ -1203,26 +1144,31 @@ export const createCourseRecord = async (name: string): Promise<ICourse> => {
 
 export const updateCourseRecord = async (
   id: string,
-  name: string
+  name: string,
 ): Promise<ICourse | null> => {
   return txMutex.runExclusive(async () => {
     const cleanName = name.trim();
     if (!cleanName) {
-      throw new Error('Course name is required.');
+      throw new Error("Course name is required.");
     }
 
     if (isMongoConnected()) {
       const duplicate = await CourseModel.findOne({
         _id: { $ne: id },
-        name: { $regex: new RegExp(`^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        name: {
+          $regex: new RegExp(
+            `^${cleanName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            "i",
+          ),
+        },
       });
       if (duplicate) {
-        throw new Error('Another course with this name already exists.');
+        throw new Error("Another course with this name already exists.");
       }
       const updated = await CourseModel.findByIdAndUpdate(
         id,
         { name: cleanName },
-        { new: true }
+        { new: true },
       ).lean();
       return updated ? { ...updated, _id: String(updated._id) } : null;
     } else {
@@ -1233,10 +1179,11 @@ export const updateCourseRecord = async (
 
       if (
         db.courses.some(
-          (c, i) => i !== idx && c.name.toLowerCase() === cleanName.toLowerCase()
+          (c, i) =>
+            i !== idx && c.name.toLowerCase() === cleanName.toLowerCase(),
         )
       ) {
-        throw new Error('Another course with this name already exists.');
+        throw new Error("Another course with this name already exists.");
       }
 
       db.courses[idx].name = cleanName;

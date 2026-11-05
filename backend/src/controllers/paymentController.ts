@@ -25,8 +25,6 @@ export const recordPayment = async (req: Request, res: Response): Promise<void> 
       paymentDate,
       paymentMethod,
       transactionReference,
-      remarks,
-      allowAdvance,
     } = req.body;
 
     if (!studentId || !String(studentId).trim()) {

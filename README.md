@@ -24,7 +24,7 @@ student-fee-manager/
 │
 ├── backend/
 │   ├── src/
-│   │   ├── config/           # MongoDB (Mongoose) connection & automatic local ledger fallback
+│   │   ├── config/           # MongoDB (Mongoose) connection
 │   │   ├── controllers/      # Auth, Dashboard, Student, Payment, and Settings controllers
 │   │   ├── models/           # Mongoose schemas: Student, Payment, Settings, Admin, Counter
 │   │   ├── routes/           # REST API routes
@@ -71,7 +71,7 @@ student-fee-manager/
 - **Node.js**: v18+ (tested with Node.js v22)
 - **MongoDB**:
   - Set `MONGODB_URI` in `backend/.env` (defaults to `mongodb://127.0.0.1:27017/student-fee-manager`).
-  - **Zero-Config Local Persistence Fallback**: If a local `mongod` service is not running on port `27017`, the backend automatically falls back to a transactional local document ledger (`backend/data/database.local.json`) so the entire application works out-of-the-box without data loss. To switch to MongoDB Atlas or a local MongoDB instance at any time, simply update `MONGODB_URI` in `backend/.env`.
+  - MongoDB is required. If the database cannot be reached, the backend exits instead of reading or writing local fallback data. Start MongoDB or set `MONGODB_URI` to a reachable MongoDB instance before starting the backend.
 
 ---
 
@@ -103,4 +103,3 @@ The frontend application will start at `http://localhost:5173`.
 
 - Navigate to `http://localhost:5173/register` to create a new administrator account using your **Name**, **Email**, and **Password**.
 - Sign in at `http://localhost:5173/login` with your registered **Email** and **Password**.
-

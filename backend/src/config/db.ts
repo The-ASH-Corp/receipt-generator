@@ -17,12 +17,8 @@ export const connectDB = async (): Promise<boolean> => {
   } catch (err) {
     mongoConnected = false;
     console.warn(
-      `[Database] Could not reach MongoDB at ${uri}. Using persistent local document engine (backend/data/database.local.json).`
-    );
-    console.warn(
-      `[Database] Tip: To use MongoDB, start a local mongod service or set MONGODB_URI in backend/.env.`
+      '[Database] Could not connect to MongoDB. MongoDB is required; start a local mongod service or set MONGODB_URI in backend/.env.'
     );
     return false;
   }
 };
-

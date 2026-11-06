@@ -1,8 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB, isMongoConnected } from './config/db';
-import { initializeDefaults } from './services/dataStore';
+import { connectDB } from './config/db';
 import authRoutes from './routes/authRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import studentRoutes from './routes/studentRoutes';
@@ -30,7 +29,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     success: true,
     status: 'ok',
-    storageEngine: isMongoConnected() ? 'MongoDB (Mongoose)' : 'Persistent Local Ledger',
+    storageEngine: 'MongoDB (Mongoose)',
     timestamp: new Date().toISOString(),
   });
 });
@@ -48,8 +47,10 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const startServer = async (): Promise<void> => {
-  await connectDB();
-  await initializeDefaults();
+  const connected = await connectDB();
+  if (!connected) {
+    throw new Error('MongoDB is required; the backend will not start without a database connection.');
+  }
 
   app.listen(PORT, () => {
     console.log(`=========================================================`);
@@ -63,4 +64,3 @@ startServer().catch((err) => {
   console.error('Failed to start backend server:', err);
   process.exit(1);
 });
-

@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export type PaymentStatusType = 'Paid' | 'Partially Paid' | 'Pending';
 export type StudentStatusType = 'Active' | 'Inactive';
 export type ClassModeType = 'Offline' | 'Online' | 'Hybrid' | 'Recorded';
-export type BranchType = 'Calicut' | 'Thirur' | string;
+export type BranchType = 'Calicut' | 'Tirur' | string;
 
 export interface IStudent {
   _id: string;

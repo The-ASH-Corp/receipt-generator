@@ -49,7 +49,7 @@ export const SettingsPage: React.FC = () => {
 
     if (settings.branches && Object.keys(settings.branches).length > 0) {
       setBranches(settings.branches);
-      const current = settings.branches[selectedBranch] || settings.branches.Thirur;
+      const current = settings.branches[selectedBranch] || settings.branches.Tirur;
       if (current) {
         setAddress(current.address || settings.address);
         setPhone(current.phone || settings.phone);
@@ -344,7 +344,7 @@ export const SettingsPage: React.FC = () => {
                 value={selectedBranch}
                 onChange={handleBranchChange}
                 options={[
-                  { label: "Thirur Branch", value: "Thirur" },
+                  { label: "Tirur Branch", value: "Tirur" },
                   { label: "Calicut Branch", value: "Calicut" },
                 ]}
                 className="px-4 py-3 font-bold text-slate-900 shadow-2xs"

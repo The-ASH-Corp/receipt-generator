@@ -68,7 +68,7 @@ export interface StudentPayload {
   courseName: string;
   courseDuration: string;
   classMode?: 'Offline' | 'Online' | 'Hybrid' | 'Recorded';
-  branch?: 'Calicut' | 'Thirur' | string;
+  branch?: 'Calicut' | 'Tirur' | string;
   paymentMethod?: string;
   receivedAmount?: number;
   courseStartDate?: string;

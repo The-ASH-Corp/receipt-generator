@@ -32,7 +32,7 @@ export const StudentModal: React.FC<StudentModalProps> = ({
   const [courseName, setCourseName] = useState('');
   const [courseDuration, setCourseDuration] = useState('6 Months');
   const [classMode, setClassMode] = useState<'Offline' | 'Online' | 'Hybrid' | 'Recorded'>('Offline');
-  const [branch, setBranch] = useState<'Calicut' | 'Thirur'>('Calicut');
+  const [branch, setBranch] = useState<'Calicut' | 'Tirur'>('Calicut');
   const [paymentMethods, setPaymentMethods] = useState<string[]>(['Cash']);
   const [totalCourseFee, setTotalCourseFee] = useState('');
   const [receivedAmount, setReceivedAmount] = useState('');
@@ -77,7 +77,7 @@ export const StudentModal: React.FC<StudentModalProps> = ({
       setClassMode(
         (initialStudent.classMode as 'Offline' | 'Online' | 'Hybrid' | 'Recorded') || 'Offline'
       );
-      setBranch((initialStudent.branch as 'Calicut' | 'Thirur') || 'Calicut');
+      setBranch((initialStudent.branch as 'Calicut' | 'Tirur') || 'Calicut');
 
       // Parse payment method checkboxes
       const methods = initialStudent.paymentMethod
@@ -379,11 +379,11 @@ export const StudentModal: React.FC<StudentModalProps> = ({
                 required
                 value={branch}
                 onChange={(value) =>
-                  setBranch(value as 'Calicut' | 'Thirur')
+                  setBranch(value as 'Calicut' | 'Tirur')
                 }
                 options={[
                   { label: 'Calicut', value: 'Calicut' },
-                  { label: 'Thirur', value: 'Thirur' },
+                  { label: 'Tirur', value: 'Tirur' },
                 ]}
               />
             </div>

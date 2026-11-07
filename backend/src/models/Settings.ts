@@ -82,7 +82,7 @@ const SettingsSchema = new Schema<ISettingsDocument>(
     },
     selectedBranch: {
       type: String,
-      default: 'Thirur',
+      default: 'Tirur',
       trim: true,
     },
     branches: {

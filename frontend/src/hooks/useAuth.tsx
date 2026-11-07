@@ -30,9 +30,9 @@ const DEFAULT_FRONTEND_SETTINGS: InstitutionSettings = {
   receiptFooterMessage:
     "Please note: All payments are final and non-refundable.",
   currencySymbol: "₹",
-  selectedBranch: "Thirur",
+  selectedBranch: "Tirur",
   branches: {
-    Thirur: {
+    Tirur: {
       address: "2nd Floor, OPS Mall, Vailathur,Tirur",
       phone: "+91 8921365750",
       email: "connect@ashacademy.ai",

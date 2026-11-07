@@ -9,7 +9,7 @@ export const formatReceiptNumber = (
     .trim()
     .replace(/[^A-Z0-9]/gi, '')
     .toLowerCase() || 'e';
-  const startAt = branch?.trim().toLowerCase() === 'thirur' ? 5000 : 1;
+  const startAt = branch?.trim().toLowerCase() === 'tirur' ? 5000 : 1;
   const receiptSequence = sequence + startAt - 1;
   return `${cleanPrefix}${String(receiptSequence).padStart(4, '0')}`;
 };

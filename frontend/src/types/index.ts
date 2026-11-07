@@ -24,7 +24,7 @@ export interface Student {
   courseName: string;
   courseDuration: string;
   classMode?: 'Offline' | 'Online' | 'Hybrid';
-  branch?: 'Calicut' | 'Thirur' | string;
+  branch?: 'Calicut' | 'Tirur' | string;
   paymentMethod?: string;
   courseStartDate?: string;
   totalCourseFee: number;

@@ -51,7 +51,7 @@ export default function Select({
                 <SelectPrimitive.Content
                     position="popper"
                     sideOffset={5}
-                    className="z-50 w-[var(--radix-select-trigger-width)]
+                    className="z-[10000] w-[var(--radix-select-trigger-width)]
             overflow-hidden rounded-xl border border-slate-200
             bg-white shadow-lg
             animate-in fade-in-0 zoom-in-95"

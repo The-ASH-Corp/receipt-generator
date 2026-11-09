@@ -328,11 +328,25 @@ export const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
                 </svg>
               </div>
 
-              {/* Amount Box */}
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-base text-neutral-900">Amount</span>
-                <div className="border border-neutral-900 px-4 py-1.5 min-w-[100px] text-center font-bold text-lg text-neutral-900 whitespace-nowrap">
-                  ₹{payment.amount}
+              {/* Amount & Signature (Right) */}
+              <div className="flex flex-col items-center sm:items-end gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-base text-neutral-900">Amount</span>
+                  <div className="border border-neutral-900 px-4 py-1.5 min-w-[100px] text-center font-bold text-lg text-neutral-900 whitespace-nowrap">
+                    ₹{payment.amount}
+                  </div>
+                </div>
+
+                <div className="text-center w-32 flex flex-col items-center">
+                  <img
+                    src="/authorized_signature.png"
+                    alt="Authorized Signature"
+                    className="h-9 w-auto max-w-[120px] object-contain -mb-1 select-none pointer-events-none"
+                  />
+                  <div className="w-full border-b border-neutral-800 mb-1" />
+                  <span className="text-[10px] font-bold text-neutral-800 tracking-wider block">
+                    Authorized Signature
+                  </span>
                 </div>
               </div>
             </div>

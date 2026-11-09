@@ -513,6 +513,46 @@ export const generateReceiptPdfBuffer = (
       const formattedAmt = String(payment.amount ?? 0);
       doc.font('Helvetica-Bold').fontSize(12).fillColor('#1f2937').text(formattedAmt, amtBoxX + 22, amtBoxY + 6);
 
+      // Authorized Signature (Under Amount)
+      const sigLineW = 110;
+      const sigLineX = amtBoxX + amtBoxW - sigLineW;
+      const sigLineY = amtBoxY + 52;
+
+      const sigCandidates = [
+        path.resolve(__dirname, '../../assets/authorized_signature.png'),
+        path.resolve(process.cwd(), 'backend/assets/authorized_signature.png'),
+        path.resolve(process.cwd(), 'assets/authorized_signature.png'),
+        path.resolve(__dirname, '../assets/authorized_signature.png'),
+        path.resolve(process.cwd(), 'frontend/public/authorized_signature.png'),
+      ];
+      const sigFile = sigCandidates.find((p) => fs.existsSync(p));
+
+      if (sigFile) {
+        const sigImgW = 75;
+        const sigImgH = 28;
+        doc.image(sigFile, sigLineX + (sigLineW - sigImgW) / 2, sigLineY - sigImgH + 2, {
+          fit: [sigImgW, sigImgH],
+          align: 'center',
+          valign: 'bottom',
+        });
+      }
+
+      doc
+        .moveTo(sigLineX, sigLineY)
+        .lineTo(sigLineX + sigLineW, sigLineY)
+        .lineWidth(0.9)
+        .strokeColor('#262626')
+        .stroke();
+
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(7.5)
+        .fillColor('#1f2937')
+        .text('Authorized Signature', sigLineX, sigLineY + 3.5, {
+          width: sigLineW,
+          align: 'center',
+        });
+
       // Bottom Notice
       const noticeY = boxY + boxH - 22;
       doc.font('Helvetica-Bold').fontSize(8).fillColor('#374151').text(

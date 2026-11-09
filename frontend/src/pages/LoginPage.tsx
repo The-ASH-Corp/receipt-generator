@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
@@ -97,18 +97,6 @@ export const LoginPage: React.FC = () => {
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-            <p className="text-sm text-slate-600">
-              Don&apos;t have an admin account?{' '}
-              <Link
-                to="/register"
-                className="font-semibold text-indigo-700 hover:text-indigo-900"
-              >
-                Register new admin
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>

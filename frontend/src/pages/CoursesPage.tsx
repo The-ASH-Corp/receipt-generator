@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, BookOpen, X, Save, AlertCircle, AlertTriangle } f
 import { Course } from '../types';
 import { courseApi } from '../services/api';
 import { useToast } from '../hooks/useToast';
+import { Pagination } from '../components/Pagination';
 
 export const CoursesPage: React.FC = () => {
   const { showToast } = useToast();
@@ -20,6 +21,10 @@ export const CoursesPage: React.FC = () => {
   // Delete confirmation state
   const [deletingCourse, setDeletingCourse] = useState<Course | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 8;
 
   const fetchCourses = useCallback(async () => {
     try {
@@ -100,6 +105,18 @@ export const CoursesPage: React.FC = () => {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(courses.length / PAGE_SIZE));
+  const paginatedCourses = courses.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [courses.length, totalPages, currentPage]);
+
   return (
     <div className="space-y-6">
       {/* Header with Add Course button */}
@@ -123,39 +140,48 @@ export const CoursesPage: React.FC = () => {
         {loading ? (
           <div className="p-12 text-center text-sm text-slate-500">Loading courses...</div>
         ) : courses.length > 0 ? (
-          <ul className="divide-y divide-slate-200/70">
-            {courses.map((course) => (
-              <li
-                key={course._id}
-                className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/80 transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
-                    <BookOpen className="w-4 h-4" />
+          <>
+            <ul className="divide-y divide-slate-200/70">
+              {paginatedCourses.map((course) => (
+                <li
+                  key={course._id}
+                  className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-slate-50/80 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-900 truncate">
+                      {course.name}
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold text-slate-900 truncate">
-                    {course.name}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => openEditModal(course)}
-                    title="Edit Course"
-                    className="p-2 rounded-lg text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 transition-colors"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setDeletingCourse(course)}
-                    title="Delete Course"
-                    className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => openEditModal(course)}
+                      title="Edit Course"
+                      className="p-2 rounded-lg text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 transition-colors"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeletingCourse(course)}
+                      title="Delete Course"
+                      className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <Pagination
+              currentPage={currentPage}
+              totalItems={courses.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+              itemName="courses"
+            />
+          </>
         ) : (
           <div className="p-14 text-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">

@@ -20,6 +20,7 @@ import { ReceiptPreviewModal } from '../components/ReceiptPreviewModal';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import Select from '../components/Select';
+import { Pagination } from '../components/Pagination';
 
 export const StudentsPage: React.FC = () => {
   const { settings } = useAuth();
@@ -40,6 +41,10 @@ export const StudentsPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [paymentStudent, setPaymentStudent] = useState<Student | null>(null);
   const [previewPayment, setPreviewPayment] = useState<Payment | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const fetchStudents = useCallback(async () => {
     try {
@@ -80,6 +85,22 @@ export const StudentsPage: React.FC = () => {
       setIsDeleting(false);
     }
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCourse, selectedPaymentStatus]);
+
+  const totalPages = Math.max(1, Math.ceil(students.length / PAGE_SIZE));
+  const paginatedStudents = students.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [students.length, totalPages, currentPage]);
 
   return (
     <div className="space-y-6">
@@ -175,7 +196,7 @@ export const StudentsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/70 text-sm">
-                {students.map((student) => (
+                {paginatedStudents.map((student) => (
                   <tr key={student._id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-4 px-4">
                       <Link
@@ -270,6 +291,16 @@ export const StudentsPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {students.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalItems={students.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            itemName="registered students"
+          />
+        )}
       </div>
 
       {/* Add / Edit Student Modal */}

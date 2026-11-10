@@ -34,8 +34,8 @@ export const getDashboardSummary = async (_req: Request, res: Response): Promise
       pending: students.filter((s) => s.paymentStatus === 'Pending').length,
     };
 
-    const recentPayments = payments.slice(0, 6);
-    const recentStudents = students.slice(0, 6);
+    const recentPayments = payments.slice(0, 10);
+    const recentStudents = students.slice(0, 10);
 
     res.json({
       success: true,

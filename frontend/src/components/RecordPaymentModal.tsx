@@ -168,8 +168,9 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-xl overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-xs p-3 sm:p-4">
+      <div className="min-h-full flex items-start sm:items-center justify-center py-4 sm:py-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-indigo-950 text-white">
           <div className="flex items-center gap-3">
@@ -494,5 +495,6 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
         )}
       </div>
     </div>
-  );
+  </div>
+);
 };

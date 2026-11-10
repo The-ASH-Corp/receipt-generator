@@ -80,8 +80,9 @@ export const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
   const cleanMob = phoneNo.replace(/[^0-9]/g, '').slice(-10) || '8921365750';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
+      <div className="min-h-full flex items-start sm:items-center justify-center py-4 sm:py-8">
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden">
         {/* Top Action Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 bg-slate-900 text-white">
           <div className="flex items-center gap-2.5">
@@ -361,5 +362,6 @@ export const ReceiptPreviewModal: React.FC<ReceiptPreviewModalProps> = ({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };

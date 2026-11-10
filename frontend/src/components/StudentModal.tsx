@@ -196,10 +196,11 @@ export const StudentModal: React.FC<StudentModalProps> = ({
   const balancePreview = Math.max(0, numericTotal - numericPaid);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4  pt-20 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-xl overflow-hidden my-4">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-indigo-950 text-white">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/50 backdrop-blur-xs p-3 sm:p-4">
+      <div className="min-h-full flex items-start sm:items-center justify-center py-4 sm:py-8">
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-xl">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 bg-indigo-950 text-white rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center">
               <UserPlus className="w-5 h-5 text-indigo-200" />
@@ -496,5 +497,6 @@ export const StudentModal: React.FC<StudentModalProps> = ({
         </form>
       </div>
     </div>
-  );
+  </div>
+);
 };
